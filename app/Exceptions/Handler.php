@@ -3,6 +3,8 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use TheSeer\Tokenizer\Exception;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -26,5 +28,10 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+
+        $this->renderable(function(NotFoundHttpException $exception) {
+            return response()->json(['message' => 'Usuario não encontrado', 'code' => 404], 404);
+        });
     }
+
 }
