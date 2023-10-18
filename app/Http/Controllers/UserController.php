@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Http\Resources\V1\UserResource;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -18,8 +20,8 @@ class UserController extends Controller
      */
     public function index()
     {
-        echo 'teste';
-        //return view();
+        $users = $this->repository->paginate();
+        return UserResource::collection($users);
     }
 
     /**
@@ -35,19 +37,18 @@ class UserController extends Controller
      */
     public function store(StoreUserRequest $request)
     {
-        echo 'ola';
-        //$data = $request->validated();
-        //$data['senha'] = bcrypt($request->senha);
+        $data = $request->validated();
+        $data['senha'] = bcrypt($request->senha);
         
-        //$this->repository->createUser($data);
+        $this->repository->createUser($data);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(User $user)
-    {
-        //
+    public function show(User $usuario)
+    { 
+        return new UserResource($usuario);
     }
 
     /**
@@ -61,9 +62,9 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateUserRequest $request, User $user)
+    public function update(UpdateUserRequest $request, string $id)
     {
-        //
+        $update = $this->repository->desativateUser($id);
     }
 
     /**
