@@ -23,7 +23,7 @@ class StoreUserRequest extends FormRequest
     {
         return [
            'nome' => 'required|min:5|max:45',
-           'email' => 'required|email|unique:usuario|regex:/ba.estudante.senai\.br/',
+           'email' => 'required|email|unique:usuario|max:255|regex:/ba.estudante.senai\.br/',
            'senha' => 'required|min:6|max:255'
         ];
     }
