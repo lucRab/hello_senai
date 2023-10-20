@@ -66,8 +66,8 @@ class User extends Model
      * @param $id id do usuario
      * @return void
      */
-    public function desativateUser($id): void {
-        return $this->where('idusuario',$id)->update(['status' => 'Desativado']);
+    public function desativateUser($id) {
+        return $this->where('idusuario',$id)->update(['status' => 'inativo']);
     }
     
     /**

@@ -6,7 +6,7 @@ use App\Models\User;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\V1\UserResource;
-use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UserController extends Controller
 {
@@ -25,14 +25,6 @@ class UserController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(StoreUserRequest $request)
@@ -46,17 +38,10 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(User $usuario)
+    public function show(string $apelido)
     { 
-        return new UserResource($usuario);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(User $user)
-    {
-        //
+        $user = $this->repository->findOrFail($apelido);
+        return new UserResource($user);
     }
 
     /**
@@ -64,7 +49,18 @@ class UserController extends Controller
      */
     public function update(UpdateUserRequest $request, string $id)
     {
-        $update = $this->repository->desativateUser($id);
+        $user = $this->repository->findOrFail($id);
+        $data = $request->validated();
+        if ($user->status != 'ativo') throw new NotFoundHttpException;
+        if ($request->senha)
+        {
+            $data['senha'] = \bcrypt($request->password);
+        }
+        if ($request->nome)
+        {
+            $this->repository->generateUsername($data['nome'], $user->idusuario);
+        }
+        $user->update($data);
     }
 
     /**
@@ -72,6 +68,6 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        //
+        // $update = $this->repository->desativateUser($id);
     }
 }
