@@ -21,7 +21,7 @@ class User extends Model
     const CREATED_AT = 'data_criacao';
     const UPDATED_AT = 'data_atualizacao';
     /**
-     * Função para criação do usuario;
+     * Método para criação do usuario;
      * @param $data - 
     */
     public function createUser($data) {
@@ -31,7 +31,7 @@ class User extends Model
     }
     
     /**
-     * Função de atualização do Usuario;
+     * Método de atualização do Usuario;
      * @param $data  dados do usuario
      * @param $id  id do usuario
      * @return void
@@ -41,7 +41,7 @@ class User extends Model
     }
 
     /**
-     * Função para deletar o usuario;
+     * Método para deletar o usuario;
      * @param $id id do usuario
      * @return void
      */
@@ -50,19 +50,19 @@ class User extends Model
     }
 
     /**
-     * Função para gerar um apelido para o usuario;
+     * Método para gerar um apelido para o usuario;
      * @param $name nome do usuario
      * @param $user_id id do usuario
      * @return void
      */
-    public function generateUsername($name, $user_id) {
+    private function generateUsername($name, $user_id) {
         $username = $name . substr(sha1($name . $user_id), 0, 8);
         $value = ['apelido' => $username];
         DB::table('usuario')->where('idusuario', $user_id)->update($value);
     }
 
     /**
-     * Função para desativar a conta do usuario;
+     * Método para desativar a conta do usuario;
      * @param $id id do usuario
      * @return void
      */
@@ -71,7 +71,7 @@ class User extends Model
     }
     
     /**
-     * Função para selecionar o usuario pelo apelido;
+     * Método para selecionar o usuario pelo apelido;
      * @param $nickname apelido do usuario
      * @return array
      */
@@ -80,7 +80,7 @@ class User extends Model
     }
 
     /**
-     * Função para selecionar todos os usuario;
+     * Método para selecionar todos os usuario;
      * @return array
      */
     public function getAll() {

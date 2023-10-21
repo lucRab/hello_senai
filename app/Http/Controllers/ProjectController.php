@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\V1\ProjectResource;
 use App\Models\Project;
 use Illuminate\Http\Request;
-
+/**
+ * Classe responsavel pelo controller dos projetos
+ * @version ${2:2.0.0
+ */
 class ProjectController extends Controller
 {
     /**
@@ -14,9 +18,9 @@ class ProjectController extends Controller
      public function __construct() {
          $this->project = new Project;
      }
-    public function index()
-    {
-        
+    public function index() {
+        $projects = $this->project->paginate();
+        return ProjectResource::collection($projects);
     }
 
     /**
@@ -30,18 +34,17 @@ class ProjectController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        $data = $request->validated();
+    public function store(Request $request) {
+        $data = $request->all();
         return $this->project->createProjects($data);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(project $project)
-    {
-        //
+    public function show(String $id) {   
+        $p = $this->project->getByName($id);
+        return $p;
     }
 
     /**
@@ -64,8 +67,8 @@ class ProjectController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(project $project)
+    public function destroy($id)
     {
-        //
+       $delete = $this->project->deleteProjects($id);
     }
 }
