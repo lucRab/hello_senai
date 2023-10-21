@@ -7,7 +7,10 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\V1\UserResource;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
+/**
+ * Classe de controlle do usuario
+ * @todo Aplicar o try - catha
+ */
 class UserController extends Controller
 {
 
@@ -66,8 +69,8 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(User $user)
+    public function destroy($id)
     {
-        // $update = $this->repository->desativateUser($id);
+        $update = $this->repository->desativateUser($id);
     }
 }
