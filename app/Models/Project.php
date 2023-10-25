@@ -14,8 +14,10 @@ class Project extends Model
         'nome_projeto',
         'status'
     ];
+
+    //Variaveis de definição da tabela
     protected $table = "projeto";
-    protected $primaryKey = "nome_projeto";
+    protected $primaryKey = "idprojeto";
     
     public $timestamps = false;
     /**
@@ -49,8 +51,8 @@ class Project extends Model
      * @param [array] $data
      * @return void
      */
-    public function updateProjects($id,$data) {
-        return $this->where('idprojeto','=', $id)->update($data);
+    public function updateProjects($idproject, $data) {
+        return $this->where('idprojeto','=', $idproject)->update($data);
     }
     /**
      * Método para deletar o projeto

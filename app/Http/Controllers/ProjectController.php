@@ -7,7 +7,7 @@ use App\Models\Project;
 use Illuminate\Http\Request;
 /**
  * Classe responsavel pelo controller dos projetos
- * @version ${2:2.0.0
+ * @version ${2:2.5.0
  */
 class ProjectController extends Controller
 {

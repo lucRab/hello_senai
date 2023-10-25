@@ -13,6 +13,8 @@ class User extends Model
         'email',
         'senha'
     ];
+    
+    //Variaveis de definição da tabela
     protected $hidden = [
         'senha'
     ];
