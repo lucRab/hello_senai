@@ -4,14 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Challenge;
 use Illuminate\Http\Request;
-
+/**
+ * Classe responsavel pelo controle do desafio
+ * @version ${2:2.0.0
+ */
 class ChallengeController extends Controller
 {
+    private Challenge  $challenge;
+    
+    public function __construct() {
+        $this->challenge = new Challenge();
+    }
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
+
         //
     }
 
@@ -30,8 +37,10 @@ class ChallengeController extends Controller
     {
         $data = $request->all();
         $invite = $this->tratamenteDataInvite($data);
-        $challege = $this->tratamenteDataInvite($data);
-        
+        $id = $this->challenge->createInvite($invite);
+        $challege = $this->tratamenteDataChallenge($data, $id);
+
+        $this->challenge->createChallenge($challege);
     }
 
     /**
@@ -53,17 +62,18 @@ class ChallengeController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Challenge $challenge)
+    public function update(Request $request, string $professor, string $desafio)
     {
-        //
+        $data = $request->all();
+        $this->challenge->updateChallenge($professor, $desafio, $data);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Challenge $challenge)
+    public function destroy($professor, $desafio)
     {
-        //
+        $this->challenge->deleteChallenge($desafio, $professor);
     }
 
     public function tratamenteDataInvite($data) {
@@ -75,11 +85,16 @@ class ChallengeController extends Controller
         ];
         return $data_invite;
     }
-    public function tratamenteDataChallerge($data, $idInvite) {
+    public function tratamenteDataChallenge($data, $idInvite) {
+        if(!empty($data['imagem'])) {
+            $imagem = $data['imagem'];
+        }else {
+            $imagem = null;
+        }
         $data_challerge = [
             'idconvite'     => $idInvite,
-            'imagem'  => $data['imagem'],
-            'idprofessor'     => $data['idprofessor']
+            'imagem'  => $imagem,
+            'idprofessor'     => $data['idusuario']
         ];
         return $data_challerge;
     }

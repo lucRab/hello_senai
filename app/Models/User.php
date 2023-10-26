@@ -11,7 +11,8 @@ class User extends Model
     protected $fillable = [
         'nome',
         'email',
-        'senha'
+        'senha',
+        'idusuario'
     ];
     
     //Variaveis de definição da tabela
@@ -30,6 +31,7 @@ class User extends Model
         $data['data_criacao'] = \Carbon\Carbon::now();
         $id = $this->insertGetId($data);
         $this->generateUsername($data['nome'], $id);
+        return $id;
     }
     
     /**
@@ -87,6 +89,16 @@ class User extends Model
      */
     public function getAll() {
         return $this->get()->toArray();
+    }
+
+    /**
+     * Método para criar especializar o usuario como professor;
+     *
+     * @return void
+     */
+    public function createProfessor($idusuario) {
+        $data = [ 'idusuario' => $idusuario];
+        DB::table('professor')->insert($data);
     }
     use HasFactory;
 }

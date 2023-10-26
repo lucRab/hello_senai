@@ -73,4 +73,12 @@ class UserController extends Controller
     {
         $delete = $this->repository->desativateUser($id);
     }
+
+    public function storeProfessor(StoreUserRequest $request) {
+        $data = $request->validated();
+        $data['senha'] = bcrypt($request->senha);
+        
+        $idusuario = $this->repository->createUser($data);
+        $this->repository->createProfessor($idusuario);
+    }
 }
