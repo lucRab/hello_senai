@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Auth;
 use App\Models\User;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
@@ -13,7 +14,10 @@ class UserController extends Controller
 
     public function __construct(
         protected User $repository,
-    ) {}
+    ) 
+    {
+        $this->middleware('auth:sanctum')->only(['update', 'destroy']);
+    }
 
     /**
      * Display a listing of the resource.
@@ -68,6 +72,7 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        var_dump(Auth::user()->nome);
         // $update = $this->repository->desativateUser($id);
     }
 }

@@ -3,11 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens; 
 use Illuminate\Support\Facades\DB;
 
-class User extends Model
+class User extends Authenticatable
 {
+    use HasApiTokens, HasFactory, Notifiable;
+    
     protected $fillable = [
         'nome',
         'email',
@@ -17,7 +21,7 @@ class User extends Model
         'senha'
     ];
     protected $table = "usuario";
-    protected $primaryKey = "apelido";
+    protected $primaryKey = "idusuario";
     const CREATED_AT = 'data_criacao';
     const UPDATED_AT = 'data_atualizacao';
     /**
@@ -28,6 +32,7 @@ class User extends Model
         $data['data_criacao'] = \Carbon\Carbon::now();
         $id = $this->insertGetId($data);
         $this->generateUsername($data['nome'], $id);
+        return $id;
     }
     
     /**
@@ -86,5 +91,11 @@ class User extends Model
     public function getAll() {
         return $this->get()->toArray();
     }
+
+    public function getAuthPassword() {
+        var_dump($this->senha);
+        return $this->senha;
+    }
+    
     use HasFactory;
 }
