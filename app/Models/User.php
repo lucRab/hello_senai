@@ -7,6 +7,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens; 
 use Illuminate\Support\Facades\DB;
+use App\Models\Project;
+use App\Models\Invitation;
 
 class User extends Authenticatable
 {
@@ -28,6 +30,17 @@ class User extends Authenticatable
      * Função para criação do usuario;
      * @param $data - 
     */
+
+    public function project()
+    {
+        return $this->hasMany(Project::class);
+    }
+
+    public function invite()
+    {
+        return $this->hasMany(Invitation::class);
+    }
+
     public function createUser($data) {
         $data['data_criacao'] = \Carbon\Carbon::now();
         $id = $this->insertGetId($data);
