@@ -37,13 +37,18 @@ class TeacherController extends Controller
      */
     public function store(StoreTeacherRequest $request)
     {
-        if (!Auth::guard('sanctum')->user()->tokenCan('teacher-store'))
+        if (Auth::guard('sanctum')->check() && Auth::guard('sanctum')->user()->tokenCan('teacher-store'))
         {
-            return response()->json(['error' => 'Unauthorized', 401]);
+            $data = $request->validated();
+            $data['senha'] = bcrypt($request->senha);
+            if (!$this->repository->createTeacher($data))
+            {
+                return response()->json(['message' => 'Não Foi Possivel Realizar Essa Ação', 403]);
+            };
+            return response()->json(['message' => 'Professor Criado Com Sucesso', 200]);
         }
-        $data = $request->validated();
-        $data['senha'] = bcrypt($request->senha);
-        $idUser = $this->repository->createTeacher($data);
+ 
+        return response()->json(['message' => 'Unauthorized', 401]);
     }
 
     /**
