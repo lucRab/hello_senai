@@ -80,10 +80,7 @@ class AuthController extends Controller
             $data = new UserResource(Auth::guard('sanctum')->user());
             return response()->json($data, 200);
         }
-        else 
-        {
-            return response()->json("Unauthorized", 401);
-        }
+        return response()->json("Unauthorized", 401);
     }
 
     public function logout(Request $request)
