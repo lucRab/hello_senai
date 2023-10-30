@@ -3,30 +3,44 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens; 
 use Illuminate\Support\Facades\DB;
+use App\Models\Project;
+use App\Models\Invitation;
 
-class User extends Model
+class User extends Authenticatable
 {
+    use HasApiTokens, HasFactory, Notifiable;
+    
     protected $fillable = [
         'nome',
         'email',
-        'senha',
-        'idusuario'
+        'senha'
     ];
-    
-    //Variaveis de definição da tabela
     protected $hidden = [
         'senha'
     ];
     protected $table = "usuario";
-    protected $primaryKey = "apelido";
+    protected $primaryKey = "idusuario";
     const CREATED_AT = 'data_criacao';
     const UPDATED_AT = 'data_atualizacao';
     /**
-     * Método para criação do usuario;
+     * Função para criação do usuario;
      * @param $data - 
     */
+
+    public function project()
+    {
+        return $this->hasMany(Project::class);
+    }
+
+    public function invite()
+    {
+        return $this->hasMany(Invitation::class);
+    }
+
     public function createUser($data) {
         $data['data_criacao'] = \Carbon\Carbon::now();
         $id = $this->insertGetId($data);
@@ -35,7 +49,7 @@ class User extends Model
     }
     
     /**
-     * Método de atualização do Usuario;
+     * Função de atualização do Usuario;
      * @param $data  dados do usuario
      * @param $id  id do usuario
      * @return void
@@ -45,7 +59,7 @@ class User extends Model
     }
 
     /**
-     * Método para deletar o usuario;
+     * Função para deletar o usuario;
      * @param $id id do usuario
      * @return void
      */
@@ -54,19 +68,19 @@ class User extends Model
     }
 
     /**
-     * Método para gerar um apelido para o usuario;
+     * Função para gerar um apelido para o usuario;
      * @param $name nome do usuario
      * @param $user_id id do usuario
      * @return void
      */
-    private function generateUsername($name, $user_id) {
+    public function generateUsername($name, $user_id) {
         $username = $name . substr(sha1($name . $user_id), 0, 8);
         $value = ['apelido' => $username];
         DB::table('usuario')->where('idusuario', $user_id)->update($value);
     }
 
     /**
-     * Método para desativar a conta do usuario;
+     * Função para desativar a conta do usuario;
      * @param $id id do usuario
      * @return void
      */
@@ -75,7 +89,7 @@ class User extends Model
     }
     
     /**
-     * Método para selecionar o usuario pelo apelido;
+     * Função para selecionar o usuario pelo apelido;
      * @param $nickname apelido do usuario
      * @return array
      */
@@ -84,21 +98,17 @@ class User extends Model
     }
 
     /**
-     * Método para selecionar todos os usuario;
+     * Função para selecionar todos os usuario;
      * @return array
      */
     public function getAll() {
         return $this->get()->toArray();
     }
 
-    /**
-     * Método para criar especializar o usuario como professor;
-     *
-     * @return void
-     */
-    public function createProfessor($idusuario) {
-        $data = [ 'idusuario' => $idusuario];
-        DB::table('professor')->insert($data);
+    public function getAuthPassword() {
+        var_dump($this->senha);
+        return $this->senha;
     }
+    
     use HasFactory;
 }

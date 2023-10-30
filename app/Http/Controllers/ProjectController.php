@@ -2,73 +2,130 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\V1\ProjectResource;
+use Auth;
 use App\Models\Project;
-use Illuminate\Http\Request;
-/**
- * Classe responsavel pelo controller dos projetos
- * @version ${2:2.5.0
- */
+use App\Services\ProjectService;
+use App\Http\Requests\StoreProjectRequest;
+use App\Http\Requests\UpdateProjectRequest;
+use App\Http\Resources\V1\ProjectResource;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
 class ProjectController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    protected Project $project;
-     public function __construct() {
-         $this->project = new Project;
-     }
-    public function index() {
-        $projects = $this->project->paginate();
-        return ProjectResource::collection($projects);
+    private $service;
+
+    public function __construct(
+        protected Project $repository
+    )
+    {
+        $this->service = new ProjectService();
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Display a listing of the resource.
      */
-    public function create()
+    public function index()
     {
-        
+        $projects = $this->repository->with('user')->paginate();
+        return ProjectResource::collection($projects);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request) {
-        $data = $request->all();
-        return $this->project->createProjects($data);
+    public function store(StoreProjectRequest $request)
+    {
+        $user = Auth::guard('sanctum')->user();
+        if (Auth::guard('sanctum')->check() && $user->tokenCan('project-store'))
+        {
+            $data = $request->validated();
+            $project = tratamentoDados($data);
+            $userId = $user->idusuario;
+            $slug = $this->service->generateSlug($project['nome_projeto']);
+
+            $project['idusuario'] = $userId;
+            $project['slug'] = $slug;
+            
+            if (!$idprojeto =$this->repository->createProject($project))
+            {
+                return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
+            };
+
+            $link = [
+                'link' => $data['link'],
+                'idprojeto' => $idprojeto
+            ];
+            return response()->json(['message' => 'Projeto Criado'], 200);
+        }
+        return response()->json(['message' => 'Unauthorized'], 401);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(String $id) {   
-        $p = $this->project->getByName($id);
-        return $p;
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(project $project)
+    public function show($slug)
     {
-        //
+        $data = $this->service->getProjectBySlug($slug);
+        if (!$data)
+        {
+            return response()->json(['message' => 'Projeto Não Encontrado'], 404);
+        }
+        return new ProjectResource($data);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateProjectRequest $request, $slug)
     {
-        $data = $request->all();
-        $this->project->updateProjects($id, $data);
+        $project = $this->service->getProjectBySlug($slug);
+        $user = Auth::guard('sanctum')->user();
+        
+        //VERIFICAR SE O USUÁRIO QUE POSTOU É O MESMO QUE ATUALIZARÁ
+        if (Auth::guard('sanctum')->check() && $user->tokenCan('project-update') && $user->apelido == $project->user->apelido)
+        {
+            $data = $request->validated();
+            $data['idprojeto'] = $project->idprojeto;
+
+            if ($data['nome_projeto'] != $project->nome_projeto)
+            {
+                $data['slug'] = $this->service->generateSlug($data['nome_projeto']);
+            }
+
+            if (!$this->repository->updateProject($data))
+            {
+                return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
+            };       
+            return response()->json(['message' => 'Projeto Atualizado'], 200);
+        }
+        return response()->json(['message' => 'Unauthorized'], 401);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy($slug)
     {
-       $delete = $this->project->deleteProjects($id);
+        $project = $this->service->getProjectBySlug($slug);
+        $user = Auth::guard('sanctum')->user();
+        
+        if (Auth::guard('sanctum')->check() && $user->tokenCan('project-update') && $user->apelido == $project->user->apelido)
+        {
+            if (!$this->repository->deleteProject($project->idprojeto))
+            {
+                return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
+            };       
+            return response()->json(['message' => 'Projeto Excluido'], 200);
+        }
+        return response()->json(['message' => 'Unauthorized'], 401);
+    }
+
+    public function tratamentoDados($data) {
+        $tratamento = [
+            'nome_projeto'  => $data['nome_projeto'],
+            'descricao'     => $data['descricao'],
+            'status'        => $data['status'],
+        ];
+        return $tratamento;
     }
 }

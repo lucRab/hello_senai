@@ -2,73 +2,101 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\V1\InviteResource;
+use Auth;
+use App\Http\Resources\V1\InvitationResource;
+use App\Http\Requests\StoreInvitationRequest;
+use App\Http\Requests\UpdateInvitationRequest;
 use App\Models\Invitation;
-use Illuminate\Http\Request;
-/**
- *  Classe responsavel pelo controle do convite
- * @version ${1:1.0.0
- */
+use App\Services\InvitationService;
+
 class InvitationController extends Controller
 {
-    private Invitation $invite;
+    private $service;
 
-    public function __construct() {
-        $this->invite = new Invitation;
+    public function __construct(
+        protected Invitation $repository
+    )
+    {
+        $this->service = new InvitationService();
     }
+
     /**
      * Display a listing of the resource.
      */
-    public function index() {
-        $invites = $this->invite->paginate();
-        return InviteResource::collection($invites);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function index()
     {
-        //
+        $invitations = $this->repository->with('user')->paginate();
+        return InvitationResource::collection($invitations);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request) {
-        $data = $request->all();
-        return $this->invite->createInvite($data);
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Invitation $invitation)
+    public function store(StoreInvitationRequest $request)
     {
-        //
-    }
+        $user = Auth::guard('sanctum')->user();
+        if (Auth::guard('sanctum')->check() && $user->tokenCan('invite-store'))
+        {
+            $data = $request->validated();
+            $userId = $user->idusuario;
+            $slug = $this->service->generateSlug($data['titulo']);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Invitation $invitation)
-    {
-        //
+            $data['idusuario'] = $userId;
+            $data['slug'] = $slug;
+            
+            if (!$this->repository->createInvitation($data))
+            {
+                return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
+            };       
+            return response()->json(['message' => 'Convite Criado'], 200);
+        }
+        return response()->json(['message' => 'Unauthorized'], 401);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $idinvite) {
-        $data = $request->all();
-        $this->invite->updateInvite($idinvite, $data);
+    public function update(UpdateInvitationRequest $request, $slug)
+    {
+        $invitation = $this->service->getInvitationBySlug($slug);
+        $user = Auth::guard('sanctum')->user();
+        
+        //VERIFICAR SE O USUÁRIO QUE POSTOU É O MESMO QUE ATUALIZARÁ
+        if (Auth::guard('sanctum')->check() && $user->tokenCan('invite-update') && $user->apelido == $invitation->user->apelido)
+        {
+            $data = $request->validated();
+            $data['idconvite'] = $invitation->idconvite;
+
+            if ($data['titulo'] != $invitation->titulo)
+            {
+                $data['slug'] = $this->service->generateSlug($data['titulo']);
+            }
+            
+            if (!$this->repository->updateInvitation($data))
+            {
+                return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
+            };       
+            return response()->json(['message' => 'Convite Atualizado'], 200);
+        }
+        return response()->json(['message' => 'Unauthorized'], 401);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($idInvite) {
-        $this->invite->deleteInvite($idInvite);
+    public function destroy($slug)
+    {
+        $invitation = $this->service->getInvitationBySlug($slug);
+        $user = Auth::guard('sanctum')->user();
+        
+        if (Auth::guard('sanctum')->check() && $user->tokenCan('invite-update') && $user->apelido == $invitation->user->apelido)
+        {
+            if (!$this->repository->deleteInvitation($invitation->idconvite))
+            {
+                return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
+            };       
+            return response()->json(['message' => 'Convite Excluido'], 200);
+        }
+        return response()->json(['message' => 'Unauthorized'], 401);
     }
-
 }

@@ -4,49 +4,58 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens; 
+use Illuminate\Support\Facades\DB;
+use App\Http\Resources\V1\ProjectResource;
 
 class Invitation extends Model
 {
+    use HasApiTokens, HasFactory, Notifiable;
+
     protected $fillable = [
-        'idusuario',
-        'data_convite',
+        'titulo',
         'descricao',
-        'titulo'
+        'data_convite',
+        'idusuario',
+        'slug'
     ];
-    //Variaveis de definição da tabela
+    
     protected $table = "convite";
     protected $primaryKey = "idconvite";
-    public $timestamps = false;
-
-    /**
-     * Método para criar o convite
-     *
-     * @param [array] $data
-     * @return int
-     */
-    public function  createInvite($data) {
-        $id = $this->insertGetId($data);
-        return $id;
+    const UPDATED_AT = "data_atualizado";
+    
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'idusuario');
     }
 
     /**
-     * Método para atualizar o convite
-     *
-     * @param [string] $idinvite
+     * Método para criar projeto
      * @param [array] $data
-     * @return void
+     * @return int $idprojeto
      */
-    public function updateInvite($idInvite,$data) {
-        $this->where('idconvite', $idInvite)->update($data);
+    public function createInvitation($data) { 
+        if ($this->insert($data)) return true;
+        return false;
     }
-    /**
-     * Método para deletar o convite
-     *
-     * @param [string] $idInvite
-     * @return void
-     */
-    public function deleteInvite($idInvite) {
-        $this->where('idconvite', $idInvite)->delete();
+
+    public function updateInvitation($data)
+    {
+        $idInvitation = $data['idconvite'];
+        if ($this->where('idconvite', '=', $idInvitation)->update($data))
+        {
+            return true;
+        };
+        return false;
     }
-    use HasFactory;
+
+    public function deleteInvitation($idInvitation)
+    {
+        if ($this->where('idconvite', '=', $idInvitation)->delete())
+        {
+            return true;
+        };
+        return false;
+    }
 }

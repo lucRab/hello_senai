@@ -4,86 +4,73 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens; 
 use Illuminate\Support\Facades\DB;
+use App\Http\Resources\V1\ProjectResource;
+
 class Project extends Model
 {
+    use HasApiTokens, HasFactory, Notifiable;
+
     protected $fillable = [
         'idusuario',
-        'data_projeto',
         'descricao',
         'nome_projeto',
-        'status'
+        'status',
+        'slug'
     ];
 
     //Variaveis de definição da tabela
     protected $table = "projeto";
     protected $primaryKey = "idprojeto";
-    
-    public $timestamps = false;
+    const UPDATED_AT = "data_atualizado";
+
+    /**
+     * Método para realizar relacionamento com o usuario
+     * @return array $data
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'idusuario');
+    }
+
     /**
      * Método para criar projeto
      * @param [array] $data
      * @return int $idprojeto
      */
-    public function createProjects($data) {
-        
+    public function createProject($data) { 
         $id = $this->insertGetId($data);
-        $this->generateUniquiName($data['nome_projeto'],$id);
-    }
-    /**
-     * Método para criar um nome unico para o projeto
-     *
-     * @param [string] $name_project
-     * @param [int] $idprojeto
-     * @version ${1:1.0.0
-     * @return void
-     */
-    private function generateUniquiName($name_project, $idprojeto) {
-        
-        $newname = $name_project . substr(sha1($name_project . $idprojeto), 0, 6);
-        $value = ['nome_projeto' => $newname];
-        $this->updateProjects($idprojeto,$value);
-    }
-    /**
-     * Método de atualização de projeto
-     *
-     * @param [string] $id
-     * @param [array] $data
-     * @return void
-     */
-    public function updateProjects($idproject, $data) {
-        return $this->where('idprojeto','=', $idproject)->update($data);
-    }
-    /**
-     * Método para deletar o projeto
-     *
-     * @param [array] $id
-     * @return void
-     */
-    public function deleteProjects($id) {
-        return $this->where('idprojeto',$id)->delete();
+        return $id;
     }
 
-    /**
-     * Método para selecuinar todos os projetos
-     *
-     * @return array
-     */
-    public function getAll() {
-        return $this->get()->toArray();
+    public function updateProject($data)
+    {
+        $idProject = $data['idprojeto'];
+        if ($this->where('idprojeto', '=', $idProject)->update($data))
+        {
+            return true;
+        };
+        return false;
     }
 
-    public function getAllProjectUser() {
+    public function deleteProject($idProject)
+    {
+        if ($this->where('idprojeto', '=', $idProject)->delete())
+        {
+            return true;
+        };
+        return false;
+    }
+    
+    public function linkGit($data) {
+        if(DB::table('link')->insertGetId($data)) return true;
+        return false;
+    }
 
+    public function createComentario($data) {
+        if(DB::table('comentario')->insert($data)) return true;
+        return false;
     }
-    /**
-     * Método para selecionar o projeto pelo nome
-     *
-     * @param string $name
-     * @return void
-     */
-    public function getByName(String $name) {
-        return $this->where('nome_projeto',$name)->get()->toArray();
-    }
-    use HasFactory;
 }

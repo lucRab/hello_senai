@@ -4,10 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Challenge;
 use Illuminate\Http\Request;
-/**
- * Classe responsavel pelo controle do desafio
- * @version ${2:2.0.0
- */
+
 class ChallengeController extends Controller
 {
     private Challenge  $challenge;
@@ -18,7 +15,8 @@ class ChallengeController extends Controller
     /**
      * Display a listing of the resource.
      */
-
+    public function index()
+    {
         //
     }
 
@@ -40,7 +38,7 @@ class ChallengeController extends Controller
         $id = $this->challenge->createInvite($invite);
         $challege = $this->tratamenteDataChallenge($data, $id);
 
-        $this->challenge->createChallenge($challege);
+        $this->challenge->createChallenge($data);
     }
 
     /**
@@ -62,18 +60,17 @@ class ChallengeController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $professor, string $desafio)
+    public function update(Request $request, Challenge $challenge)
     {
-        $data = $request->all();
-        $this->challenge->updateChallenge($professor, $desafio, $data);
+        //
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($professor, $desafio)
+    public function destroy(Challenge $challenge)
     {
-        $this->challenge->deleteChallenge($desafio, $professor);
+        //
     }
 
     public function tratamenteDataInvite($data) {
@@ -94,7 +91,7 @@ class ChallengeController extends Controller
         $data_challerge = [
             'idconvite'     => $idInvite,
             'imagem'  => $imagem,
-            'idprofessor'     => $data['idusuario']
+            'idprofessor'     => $data['idprofessor']
         ];
         return $data_challerge;
     }

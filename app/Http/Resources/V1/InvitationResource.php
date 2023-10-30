@@ -5,7 +5,7 @@ namespace App\Http\Resources\V1;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ProjectResource extends JsonResource
+class InvitationResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,12 +16,11 @@ class ProjectResource extends JsonResource
     {
         $author = $this->whenLoaded('user');
         return [
-            'nomeProjeto' => $this->nome_projeto,
+            'titulo' => $this->titulo,
             'descricao' => $this->descricao,
-            'dataCriacao' => $this->data_projeto,
-            'status' => $this->status,
+            'dataCriacao' => $this->data_convite,
             'slug' => $this->slug,
-            'autor' => ['nome' => $author->nome, 'apelido' => $author->apelido] 
+            'autor' => ['nome' => $author->nome, 'apelido' => $author->apelido]
         ];
     }
 }
