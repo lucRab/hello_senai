@@ -8,6 +8,7 @@ use App\Services\ProjectService;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Http\Resources\V1\ProjectResource;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ProjectController extends Controller
@@ -47,14 +48,15 @@ class ProjectController extends Controller
             $project['slug'] = $slug;
             
             if (!$idprojeto =$this->repository->createProject($project))
-            {
                 return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
-            };
-
+            
             $link = [
                 'link' => $data['link'],
                 'idprojeto' => $idprojeto
             ];
+            if(!$this->repository->linkGit($link)) 
+                return response()->json(['message' => 'Não Foi Possível Inserir o Link']);
+
             return response()->json(['message' => 'Projeto Criado'], 200);
         }
         return response()->json(['message' => 'Unauthorized'], 401);
@@ -127,5 +129,10 @@ class ProjectController extends Controller
             'status'        => $data['status'],
         ];
         return $tratamento;
+    }
+
+    public function denunciationProject(Request $request) {
+        $data = $request->all();
+        $this->repository->denuciaProjeto($data);
     }
 }

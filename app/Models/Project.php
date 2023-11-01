@@ -11,7 +11,6 @@ use App\Http\Resources\V1\ProjectResource;
 
 class Project extends Model
 {
-    use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
         'idusuario',
@@ -25,13 +24,13 @@ class Project extends Model
     protected $table = "projeto";
     protected $primaryKey = "idprojeto";
     const UPDATED_AT = "data_atualizado";
+    public Comment $comentario;
 
     /**
      * Método para realizar relacionamento com o usuario
-     * @return array $data
+     * @return object $data
      */
-    public function user()
-    {
+    public function user() {
         return $this->belongsTo(User::class, 'idusuario');
     }
 
@@ -44,7 +43,12 @@ class Project extends Model
         $id = $this->insertGetId($data);
         return $id;
     }
-
+    /**
+     * Método para atualizar o projeto
+     *
+     * @param [array] $data
+     * @return bool
+     */
     public function updateProject($data)
     {
         $idProject = $data['idprojeto'];
@@ -54,7 +58,12 @@ class Project extends Model
         };
         return false;
     }
-
+    /**
+     * Método para deletar o projeto
+     *
+     * @param [string] $idProject
+     * @return bool
+     */
     public function deleteProject($idProject)
     {
         if ($this->where('idprojeto', '=', $idProject)->delete())
@@ -63,14 +72,24 @@ class Project extends Model
         };
         return false;
     }
-    
+    /**
+     * Método para inserir o link do github do projeto
+     *
+     * @param [array] $data
+     * @return bool
+     */
     public function linkGit($data) {
         if(DB::table('link')->insertGetId($data)) return true;
         return false;
     }
-
-    public function createComentario($data) {
-        if(DB::table('comentario')->insert($data)) return true;
+    /**
+     * Método para denuciar o projeto
+     *
+     * @param [array] $data
+     * @return bool
+     */
+    public function denuciaProjeto($data) {
+        if(DB::table('denucia')->insert($data)) return  true;
         return false;
     }
 }
