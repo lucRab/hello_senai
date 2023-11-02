@@ -92,4 +92,15 @@ class Project extends Model
         if(DB::table('denucia')->insert($data)) return  true;
         return false;
     }
+    /**
+     * Método para vincular um projeto a um desafio
+     *
+     * @param [array] $idDesafio
+     * @param [string] $idProjeto
+     * @return bool
+     */
+    public function vinculationChallenge(array $idDesafio,string $idProjeto) {
+        if($this->where('idprojeto', '=', $idProjeto)->update($idDesafio)) return true;
+        return false;
+    }
 }
