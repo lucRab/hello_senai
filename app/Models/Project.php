@@ -72,6 +72,10 @@ class Project extends Model
         };
         return false;
     }
+
+    public function getProject(string $id) {
+        return $this->where('idprojeto', '=', $id)->get()->toArray();
+    }
     /**
      * Método para inserir o link do github do projeto
      *
@@ -88,8 +92,8 @@ class Project extends Model
      * @param [array] $data
      * @return bool
      */
-    public function denuciaProjeto($data) {
-        if(DB::table('denucia')->insert($data)) return  true;
+    public function denunciaProjeto($data) {
+        if(DB::table('denuncia')->insert($data)) return  true;
         return false;
     }
     /**

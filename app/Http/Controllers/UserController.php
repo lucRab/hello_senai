@@ -75,4 +75,9 @@ class UserController extends Controller
         var_dump(Auth::user()->nome);
         // $update = $this->repository->desativateUser($id);
     }
+    public function vericationStatus(string $apelido) {
+        $get = $this->repository->getByNickname($apelido);
+        if($get[0]['status'] == 'Inativo') return false;
+        return true;
+    }
 }

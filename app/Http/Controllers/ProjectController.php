@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DenuciaProjectRequest;
 use Auth;
 use App\Models\Project;
 use App\Services\ProjectService;
@@ -131,8 +132,36 @@ class ProjectController extends Controller
         return $tratamento;
     }
 
-    public function denunciationProject(Request $request) {
+    public function denunciationProject(DenuciaProjectRequest $request) {
+        $data = $request->validated();
+        if(!$this->repository->denunciaProjeto($data))
+        return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
+    }
+
+    public function challengeVinculation(Request $request) {
         $data = $request->all();
-        $this->repository->denuciaProjeto($data);
+        $idProject = $data['idprojeto']; 
+        $iddesafio = $data['iddesafio'];
+        $get = $this->repository->getProject($idProject);
+        if($get[0]['iddesafio'] == null) {
+            $data = ['iddesafio' => $iddesafio];
+            if(!$this->repository->vinculationChallenge($data, $idProject)) 
+            return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403); 
+        }else{
+            return response()->json(['message' => 'Esse projeto já estar vinculado a um desafio'], 403);
+        }
+    }
+
+    public function challengeDesvinculation(Request $request) {
+        $data = $request->all();
+        $idProject = $data['idprojeto']; 
+        $get = $this->repository->getProject($idProject);
+        if($get[0]['iddesafio'] != null) {
+            $data = ['iddesafio' => null];
+            if(!$this->repository->vinculationChallenge($data, $idProject)) 
+            return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);   
+        }else{
+            return response()->json(['message' => 'Esse projeto já estar vinculado a um desafio'], 403);
+        }
     }
 }

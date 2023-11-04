@@ -19,6 +19,9 @@ Route::group(['prefix' => 'v1'], function () {
     Route::apiResource('usuario', UserController::class);
     Route::post('usuario/professor', [UserController::class,'storeProfessor'])->name('usuario.professor');
     Route::apiResource('projeto', ProjectController::class);
+    Route::post('projeto/denucia',[ProjectController::class,'denunciationProject'])->name('projeto.denucia');
+    Route::post('projeto/desafio',[ProjectController::class,'challengeVinculation'])->name('projeto.desafio');
+    Route::post('projeto/desafio/desvincular',[ProjectController::class,'challengeDesvinculation'])->name('projeto.desvicular'); 
     Route::apiResource('convite', InvitationController::class);    
     Route::apiResource('desafio', ChallengeController::class);
     Route::put('desafio/{professor}/{desafio}', [ChallengeController::class,'update'])->name('desafio.update');

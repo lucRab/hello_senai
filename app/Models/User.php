@@ -94,7 +94,7 @@ class User extends Authenticatable
      * @return array
      */
     public function getByNickname($nickname) {
-        return $this->where('apelido', $nickname)->get()->toArray();
+        return $this->where('apelido', '=',$nickname)->get()->toArray();
     }
 
     /**
@@ -109,6 +109,6 @@ class User extends Authenticatable
         var_dump($this->senha);
         return $this->senha;
     }
-    
+
     use HasFactory;
 }

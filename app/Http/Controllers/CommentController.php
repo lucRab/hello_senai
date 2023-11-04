@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CommentRequest;
+use App\Http\Requests\UpdateCommentRequest;
 use App\Models\Comment;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -34,11 +36,10 @@ class CommentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        $data = $request->all();
-
-        $this->repository->createComment($data);
+    public function store(CommentRequest $request) {
+        $data = $request->validated();
+        if(!$this->repository->createComment($data))
+        return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
     }
 
     /**
@@ -60,17 +61,17 @@ class CommentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $comment)
-    {
-        $data = $request->all();
-        $this->repository->updateComment($comment, $data);
+    public function update(UpdateCommentRequest $request, string $comment) {
+        $data = $request->validated();
+        if(!$this->repository->updateComment($comment, $data))
+        return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $comment)
-    {
-        $this->repository->deleteComment($comment);
+    public function destroy(string $comment) {
+        if(!$this->repository->deleteComment($comment))
+        return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
     }
 }
