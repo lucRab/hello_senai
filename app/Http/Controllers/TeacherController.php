@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CustomExcepition;
 use Auth;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreTeacherRequest;
@@ -36,19 +37,19 @@ class TeacherController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(StoreTeacherRequest $request)
-    {
-        if (Auth::guard('sanctum')->check() && Auth::guard('sanctum')->user()->tokenCan('teacher-store'))
-        {
+    {   
+        try {
+            $user = Auth::guard('sanctum')->user();
+            CustomExcepition::authorizedActionException( 'teacher-store', $user);
+            
             $data = $request->validated();
             $data['senha'] = bcrypt($request->senha);
-            if (!$this->repository->createTeacher($data))
-            {
-                return response()->json(['message' => 'Não Foi Possivel Realizar Essa Ação', 403]);
-            };
+            CustomExcepition::actionExcepition($this->repository->createTeacher($data));
+
             return response()->json(['message' => 'Professor Criado Com Sucesso', 200]);
-        }
- 
-        return response()->json(['message' => 'Unauthorized', 401]);
+        }catch (\Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 403); 
+        } 
     }
 
     /**

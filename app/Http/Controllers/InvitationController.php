@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CustomExcepition;
 use Auth;
 use App\Http\Resources\V1\InvitationResource;
 use App\Http\Requests\StoreInvitationRequest;
@@ -43,12 +44,13 @@ class InvitationController extends Controller
 
             $data['idusuario'] = $userId;
             $data['slug'] = $slug;
-            
-            if (!$this->repository->createInvitation($data))
-            {
-                return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
-            };       
-            return response()->json(['message' => 'Convite Criado'], 200);
+            try {
+                CustomExcepition::actionExcepition($this->repository->createInvitation($data));  
+                return response()->json(['message' => 'Convite Criado'], 200);
+
+            }catch (\Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 403); 
+            } 
         }
         return response()->json(['message' => 'Unauthorized'], 401);
     }
@@ -71,12 +73,13 @@ class InvitationController extends Controller
             {
                 $data['slug'] = $this->service->generateSlug($data['titulo']);
             }
+            try {
+                CustomExcepition::actionExcepition($this->repository->updateInvitation($data));       
+                return response()->json(['message' => 'Convite Atualizado'], 200);
+            }catch (\Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 403); 
+            }
             
-            if (!$this->repository->updateInvitation($data))
-            {
-                return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
-            };       
-            return response()->json(['message' => 'Convite Atualizado'], 200);
         }
         return response()->json(['message' => 'Unauthorized'], 401);
     }
@@ -91,11 +94,13 @@ class InvitationController extends Controller
         
         if (Auth::guard('sanctum')->check() && $user->tokenCan('invite-update') && $user->apelido == $invitation->user->apelido)
         {
-            if (!$this->repository->deleteInvitation($invitation->idconvite))
-            {
-                return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
-            };       
-            return response()->json(['message' => 'Convite Excluido'], 200);
+            try {
+                CustomExcepition::actionExcepition(!$this->repository->deleteInvitation($invitation->idconvite));       
+                return response()->json(['message' => 'Convite Excluido'], 200);
+            }catch (\Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 403); 
+            }
+           
         }
         return response()->json(['message' => 'Unauthorized'], 401);
     }

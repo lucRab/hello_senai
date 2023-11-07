@@ -6,6 +6,7 @@ use App\Http\Requests\CommentRequest;
 use App\Http\Requests\UpdateCommentRequest;
 use App\Models\Comment;
 use App\Http\Controllers\Controller;
+use App\Services\CustomExcepition;
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
@@ -38,8 +39,11 @@ class CommentController extends Controller
      */
     public function store(CommentRequest $request) {
         $data = $request->validated();
-        if(!$this->repository->createComment($data))
-        return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
+        try {
+           CustomExcepition::actionExcepition($this->repository->createComment($data));
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage() ], 403);
+        }
     }
 
     /**
@@ -47,13 +51,13 @@ class CommentController extends Controller
      */
     public function show(Comment $comment)
     {
-        //
+        
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Comment $comment)
+    public function edit( $comment)
     {
         //
     }
@@ -63,15 +67,21 @@ class CommentController extends Controller
      */
     public function update(UpdateCommentRequest $request, string $comment) {
         $data = $request->validated();
-        if(!$this->repository->updateComment($comment, $data))
-        return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
+        try {
+            CustomExcepition::actionExcepition($this->repository->updateComment($comment, $data));
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage() ], 403);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $comment) {
-        if(!$this->repository->deleteComment($comment))
-        return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
+        try {
+            CustomExcepition::actionExcepition($this->repository->deleteComment($comment));
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage() ], 403);
+        }
     }
 }

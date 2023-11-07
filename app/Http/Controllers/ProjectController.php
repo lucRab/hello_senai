@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\DenuciaProjectRequest;
+use App\Services\CustomExcepition;
 use Auth;
 use App\Models\Project;
 use App\Services\ProjectService;
@@ -15,7 +16,11 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class ProjectController extends Controller
 {
     private $service;
-
+    /**
+     * Método construtor
+     *
+     * @param Project $repository
+     */
     public function __construct(
         protected Project $repository
     )
@@ -41,24 +46,25 @@ class ProjectController extends Controller
         if (Auth::guard('sanctum')->check() && $user->tokenCan('project-store'))
         {
             $data = $request->validated();
-            $project = tratamentoDados($data);
+            $project = $this->tratamentoDados($data);
             $userId = $user->idusuario;
             $slug = $this->service->generateSlug($project['nome_projeto']);
 
             $project['idusuario'] = $userId;
             $project['slug'] = $slug;
-            
-            if (!$idprojeto =$this->repository->createProject($project))
-                return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
-            
-            $link = [
-                'link' => $data['link'],
-                'idprojeto' => $idprojeto
-            ];
-            if(!$this->repository->linkGit($link)) 
-                return response()->json(['message' => 'Não Foi Possível Inserir o Link']);
 
-            return response()->json(['message' => 'Projeto Criado'], 200);
+            try {
+                CustomExcepition::actionExcepition($idprojeto =$this->repository->createProject($project));
+            
+                $link = [
+                    'link' => $data['link'],
+                    'idprojeto' => $idprojeto
+                ];
+                CustomExcepition::actionExcepition($this->repository->linkGit($link)); 
+                return response()->json(['message' => 'Projeto Criado'], 200); 
+            }catch (\Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 403); 
+            } 
         }
         return response()->json(['message' => 'Unauthorized'], 401);
     }
@@ -94,11 +100,11 @@ class ProjectController extends Controller
             {
                 $data['slug'] = $this->service->generateSlug($data['nome_projeto']);
             }
-
-            if (!$this->repository->updateProject($data))
-            {
-                return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
-            };       
+            try {     
+                CustomExcepition::actionExcepition($this->repository->updateProject($data));
+            }catch (\Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 403); 
+            }       
             return response()->json(['message' => 'Projeto Atualizado'], 200);
         }
         return response()->json(['message' => 'Unauthorized'], 401);
@@ -114,10 +120,11 @@ class ProjectController extends Controller
         
         if (Auth::guard('sanctum')->check() && $user->tokenCan('project-update') && $user->apelido == $project->user->apelido)
         {
-            if (!$this->repository->deleteProject($project->idprojeto))
-            {
-                return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
-            };       
+            try{
+                CustomExcepition::actionExcepition($this->repository->deleteProject($project->idprojeto));
+            }catch (\Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 403); 
+            }       
             return response()->json(['message' => 'Projeto Excluido'], 200);
         }
         return response()->json(['message' => 'Unauthorized'], 401);
@@ -134,8 +141,11 @@ class ProjectController extends Controller
 
     public function denunciationProject(DenuciaProjectRequest $request) {
         $data = $request->validated();
-        if(!$this->repository->denunciaProjeto($data))
-        return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
+        try{
+            CustomExcepition::actionExcepition($this->repository->denunciaProjeto($data));
+        }catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 403); 
+        }
     }
 
     public function challengeVinculation(Request $request) {
@@ -145,9 +155,12 @@ class ProjectController extends Controller
         $get = $this->repository->getProject($idProject);
         if($get[0]['iddesafio'] == null) {
             $data = ['iddesafio' => $iddesafio];
-            if(!$this->repository->vinculationChallenge($data, $idProject)) 
-            return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403); 
-        }else{
+            try{
+                CustomExcepition::actionExcepition($this->repository->vinculationChallenge($data, $idProject));
+            }catch (\Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 403); 
+            }
+        } else{
             return response()->json(['message' => 'Esse projeto já estar vinculado a um desafio'], 403);
         }
     }
@@ -158,8 +171,11 @@ class ProjectController extends Controller
         $get = $this->repository->getProject($idProject);
         if($get[0]['iddesafio'] != null) {
             $data = ['iddesafio' => null];
-            if(!$this->repository->vinculationChallenge($data, $idProject)) 
-            return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);   
+            try {
+                CustomExcepition::actionExcepition($this->repository->vinculationChallenge($data, $idProject));
+            }catch (\Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 403); 
+            } 
         }else{
             return response()->json(['message' => 'Esse projeto já estar vinculado a um desafio'], 403);
         }
