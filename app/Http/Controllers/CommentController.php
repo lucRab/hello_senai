@@ -6,7 +6,7 @@ use App\Http\Requests\CommentRequest;
 use App\Http\Requests\UpdateCommentRequest;
 use App\Models\Comment;
 use App\Http\Controllers\Controller;
-use App\Services\CustomExcepition;
+use App\Services\CustomException;
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
@@ -40,7 +40,7 @@ class CommentController extends Controller
     public function store(CommentRequest $request) {
         $data = $request->validated();
         try {
-           CustomExcepition::actionExcepition($this->repository->createComment($data));
+           CustomException::actionException($this->repository->createComment($data));
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage() ], 403);
         }
@@ -68,7 +68,7 @@ class CommentController extends Controller
     public function update(UpdateCommentRequest $request, string $comment) {
         $data = $request->validated();
         try {
-            CustomExcepition::actionExcepition($this->repository->updateComment($comment, $data));
+            CustomException::actionException($this->repository->updateComment($comment, $data));
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage() ], 403);
         }
@@ -79,7 +79,7 @@ class CommentController extends Controller
      */
     public function destroy(string $comment) {
         try {
-            CustomExcepition::actionExcepition($this->repository->deleteComment($comment));
+            CustomException::actionException($this->repository->deleteComment($comment));
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage() ], 403);
         }

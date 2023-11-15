@@ -1,23 +1,35 @@
 <?php
 namespace App\Services;
 
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-class CustomExcepition {
+use Log;
+class CustomException {
     
-    static function actionExcepition($index) {
+    static function actionException($index) {
         if(!$index)
         throw new \Exception('Não Foi Possível Realizar Essa Ação');
     }
-    static function authorizedActionException(string $action, Auth $tokenUser, $inviatation = null) {
-        if($inviatation == null) {
-            if(!Auth::guard('sanctum')->check() && !$tokenUser->tokenCan($action)) {
-                throw new \Exception('Unauthorized');
+    static function authorizedActionException(string $action, $tokenUser, string $method, $inviatation = null) {
+        if(Auth::guard('sanctum')->check() ) {
+            if($inviatation == null) {
+                if(!$tokenUser->tokenCan($action)) {
+                    Log::error('Unauthorized',['idusuario: '    => Auth::guard('sanctum')->id(),
+                                                'método: '      => $method]);
+                    throw new \Exception('Unauthorized');
+                }
+            }else {
+                if(!$tokenUser->tokenCan($action) && !$tokenUser->apelido == $inviatation->user->apelido) {   
+                    Log::error('Unauthorized');
+                    throw new \Exception('Unauthorized');
+                    
+                }
             }
         }else {
-            if(!Auth::guard('sanctum')->check() && !$tokenUser->tokenCan($action) && !$tokenUser->apelido == $inviatation->user->apelido) {
-                throw new \Exception('Unauthorized');
-            }
+            Log::error('Unauthorized');
+            throw new \Exception('Unauthorized');
         }
+       
     }
 }

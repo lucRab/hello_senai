@@ -106,9 +106,7 @@ class User extends Authenticatable
     }
 
     public function getAuthPassword() {
-        var_dump($this->senha);
         return $this->senha;
     }
 
-    use HasFactory;
 }

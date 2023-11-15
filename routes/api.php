@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChallengeController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\InvitationController;
@@ -27,4 +28,11 @@ Route::group(['prefix' => 'v1'], function () {
     Route::put('desafio/{professor}/{desafio}', [ChallengeController::class,'update'])->name('desafio.update');
     Route::delete('desafio/{professor}/{desafio}', [ChallengeController::class,'destroy'])->name('desafio.delete'); 
     Route::apiResource('comentario', CommentController::class);
+});
+
+Route::group(['prefix' => 'auth'], function () {
+    Route::post('/login', [AuthController::class, 'login']);   
+    Route::post('/logout', [AuthController::class, 'logout']);   
+    Route::post('/create/teacher', [AuthController::class, 'registerTeacher']);   
+    Route::get('/profile', [AuthController::class, 'profile']);   
 });

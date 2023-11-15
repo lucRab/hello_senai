@@ -36,8 +36,8 @@ class Invitation extends Model
      * @return int $idprojeto
      */
     public function createInvitation($data) { 
-        if ($this->insert($data)) return true;
-        return false;
+        if ($this->insert($data)) return false;
+        return true;
     }
 
     public function updateInvitation($data)

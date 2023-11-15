@@ -22,7 +22,7 @@ class AuthController extends Controller
     {      
         $this->service = new AuthService();
     }
-
+    
     public function getAbilities()
     {
         return ['project-store', 'project-update', 'project-destroy', 'invite-store', 'invite-update', 'invite-destroy'];
@@ -46,7 +46,7 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = Auth::attempt($request->only('email', 'password'));
+        $credentials = Auth::attempt($request->only('email', 'senha'));
         $abilities = $this->getAbilities();
         
         if ($credentials)

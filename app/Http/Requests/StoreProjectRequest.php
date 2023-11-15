@@ -25,7 +25,7 @@ class StoreProjectRequest extends FormRequest
             'nome_projeto' => 'required|min:3|max:80',
             'descricao' => 'required',
             'status' => 'required',
-            'link' => 'required|regex:github.com/'
+            'link' => 'required|regex:/github.com/'
         ];
     }
 }

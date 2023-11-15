@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\DenuciaProjectRequest;
-use App\Services\CustomExcepition;
+use App\Services\CustomException;
 use Auth;
 use App\Models\Project;
 use App\Services\ProjectService;
@@ -43,8 +43,8 @@ class ProjectController extends Controller
     public function store(StoreProjectRequest $request)
     {
         $user = Auth::guard('sanctum')->user();
-        if (Auth::guard('sanctum')->check() && $user->tokenCan('project-store'))
-        {
+        try {
+            CustomException::authorizedActionException('project-store', $user);
             $data = $request->validated();
             $project = $this->tratamentoDados($data);
             $userId = $user->idusuario;
@@ -53,20 +53,18 @@ class ProjectController extends Controller
             $project['idusuario'] = $userId;
             $project['slug'] = $slug;
 
-            try {
-                CustomExcepition::actionExcepition($idprojeto =$this->repository->createProject($project));
             
-                $link = [
-                    'link' => $data['link'],
-                    'idprojeto' => $idprojeto
-                ];
-                CustomExcepition::actionExcepition($this->repository->linkGit($link)); 
-                return response()->json(['message' => 'Projeto Criado'], 200); 
-            }catch (\Exception $e) {
-                return response()->json(['message' => $e->getMessage()], 403); 
-            } 
-        }
-        return response()->json(['message' => 'Unauthorized'], 401);
+            CustomException::actionException($idprojeto =$this->repository->createProject($project));
+            
+            $link = [
+                'link' => $data['link'],
+                'idprojeto' => $idprojeto
+            ];
+            CustomException::actionException($this->repository->linkGit($link)); 
+            return response()->json(['message' => 'Projeto Criado'], 200); 
+        }catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 403); 
+        } 
     }
 
     /**
@@ -74,7 +72,7 @@ class ProjectController extends Controller
      */
     public function show($slug)
     {
-        $data = $this->service->getProjectBySlug($slug);
+        $data = $this->service->getBySlug($slug);
         if (!$data)
         {
             return response()->json(['message' => 'Projeto Não Encontrado'], 404);
@@ -87,12 +85,13 @@ class ProjectController extends Controller
      */
     public function update(UpdateProjectRequest $request, $slug)
     {
-        $project = $this->service->getProjectBySlug($slug);
+        $project = $this->service->getBySlug($slug);
         $user = Auth::guard('sanctum')->user();
         
-        //VERIFICAR SE O USUÁRIO QUE POSTOU É O MESMO QUE ATUALIZARÁ
-        if (Auth::guard('sanctum')->check() && $user->tokenCan('project-update') && $user->apelido == $project->user->apelido)
-        {
+        try {     
+            //VERIFICAR SE O USUÁRIO QUE POSTOU É O MESMO QUE ATUALIZARÁ
+            CustomException::authorizedActionException( 'project-update', $user, $project);
+        
             $data = $request->validated();
             $data['idprojeto'] = $project->idprojeto;
 
@@ -100,14 +99,11 @@ class ProjectController extends Controller
             {
                 $data['slug'] = $this->service->generateSlug($data['nome_projeto']);
             }
-            try {     
-                CustomExcepition::actionExcepition($this->repository->updateProject($data));
-            }catch (\Exception $e) {
-                return response()->json(['message' => $e->getMessage()], 403); 
-            }       
+            CustomException::actionException($this->repository->updateProject($data));
             return response()->json(['message' => 'Projeto Atualizado'], 200);
-        }
-        return response()->json(['message' => 'Unauthorized'], 401);
+        }catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 403); 
+        }       
     }
 
     /**
@@ -115,19 +111,17 @@ class ProjectController extends Controller
      */
     public function destroy($slug)
     {
-        $project = $this->service->getProjectBySlug($slug);
+        $project = $this->service->getBySlug($slug);
         $user = Auth::guard('sanctum')->user();
         
-        if (Auth::guard('sanctum')->check() && $user->tokenCan('project-update') && $user->apelido == $project->user->apelido)
-        {
-            try{
-                CustomExcepition::actionExcepition($this->repository->deleteProject($project->idprojeto));
-            }catch (\Exception $e) {
-                return response()->json(['message' => $e->getMessage()], 403); 
-            }       
+        try{
+            CustomException::authorizedActionException('project-update', $user, $project);
+            CustomException::actionException($this->repository->deleteProject($project->idprojeto));
             return response()->json(['message' => 'Projeto Excluido'], 200);
-        }
-        return response()->json(['message' => 'Unauthorized'], 401);
+            
+        }catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 403); 
+        }       
     }
 
     public function tratamentoDados($data) {
@@ -142,7 +136,7 @@ class ProjectController extends Controller
     public function denunciationProject(DenuciaProjectRequest $request) {
         $data = $request->validated();
         try{
-            CustomExcepition::actionExcepition($this->repository->denunciaProjeto($data));
+            CustomException::actionException($this->repository->denunciaProjeto($data));
         }catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 403); 
         }
@@ -156,7 +150,7 @@ class ProjectController extends Controller
         if($get[0]['iddesafio'] == null) {
             $data = ['iddesafio' => $iddesafio];
             try{
-                CustomExcepition::actionExcepition($this->repository->vinculationChallenge($data, $idProject));
+                CustomException::actionException($this->repository->vinculationChallenge($data, $idProject));
             }catch (\Exception $e) {
                 return response()->json(['message' => $e->getMessage()], 403); 
             }
@@ -172,7 +166,7 @@ class ProjectController extends Controller
         if($get[0]['iddesafio'] != null) {
             $data = ['iddesafio' => null];
             try {
-                CustomExcepition::actionExcepition($this->repository->vinculationChallenge($data, $idProject));
+                CustomException::actionException($this->repository->vinculationChallenge($data, $idProject));
             }catch (\Exception $e) {
                 return response()->json(['message' => $e->getMessage()], 403); 
             } 
