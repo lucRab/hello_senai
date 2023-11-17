@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Log;
 
 class Comment extends Model
 {
@@ -25,6 +26,7 @@ class Comment extends Model
      */
     public function createComment($data) {
         if($this->insert($data)) return true;
+        Log::error(self::class. "Error Create", ['dados: ' => $data]);
         return false;
     }
     /**
@@ -36,6 +38,7 @@ class Comment extends Model
      */
     public function updateComment($idComment, $data) {
         if($this->where('idcomentario', '=', $idComment)->update($data)) return true;
+        Log::error(self::class. "Error Update", ['idComentario: ' => $idComment, 'dados: ' => $data]);
         return false;
     }
     /**
@@ -46,6 +49,7 @@ class Comment extends Model
      */
     public function deleteComment($idComment) {
         if($this->where('idcomentario', '=', $idComment)->delete()) return true;
+        Log::error(self::class. "Error Delete", ['idComentario: ' => $idComment]);
         return false;
     }
     /**

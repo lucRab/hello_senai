@@ -82,10 +82,11 @@ class User extends Authenticatable
     /**
      * Função para desativar a conta do usuario;
      * @param $id id do usuario
-     * @return void
+     * @return bool
      */
     public function desativateUser($id) {
-        return $this->where('idusuario',$id)->update(['status' => 'inativo']);
+        if($this->where('idusuario', $id)->update(['status' => 'inativo'])) return true;
+        return false; 
     }
     
     /**

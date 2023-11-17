@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\CustomExcepition;
+use App\Services\CustomException;
 use Auth;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreTeacherRequest;
@@ -40,11 +40,11 @@ class TeacherController extends Controller
     {   
         try {
             $user = Auth::guard('sanctum')->user();
-            CustomExcepition::authorizedActionException( 'teacher-store', $user);
+            CustomException::authorizedActionException( 'teacher-store', $user);
             
             $data = $request->validated();
             $data['senha'] = bcrypt($request->senha);
-            CustomExcepition::actionExcepition($this->repository->createTeacher($data));
+            CustomException::actionException($this->repository->createTeacher($data));
 
             return response()->json(['message' => 'Professor Criado Com Sucesso', 200]);
         }catch (\Exception $e) {

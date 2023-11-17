@@ -8,6 +8,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens; 
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\V1\ProjectResource;
+use Log;
 
 class Invitation extends Model
 {
@@ -37,6 +38,7 @@ class Invitation extends Model
      */
     public function createInvitation($data) { 
         if ($this->insert($data)) return false;
+        Log::error(self::class. "Error Create", ['dados: ' => $data]);
         return true;
     }
 
@@ -47,6 +49,7 @@ class Invitation extends Model
         {
             return true;
         };
+        Log::error(self::class. "Error Update", ['dados: ' => $data]);
         return false;
     }
 
@@ -56,6 +59,7 @@ class Invitation extends Model
         {
             return true;
         };
+        Log::error(self::class. "Error Delete", ['idComentario: ' => $idInvitation]);
         return false;
     }
 }
