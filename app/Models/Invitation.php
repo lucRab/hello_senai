@@ -36,30 +36,51 @@ class Invitation extends Model
      * @param [array] $data
      * @return int $idprojeto
      */
-    public function createInvitation($data) { 
-        if ($this->insert($data)) return false;
-        Log::error(self::class. "Error Create", ['dados: ' => $data]);
-        return true;
+    public function createInvitation(array $data) { 
+        if ($this->insert($data)) {
+            return true;
+        }
+        Log::error(self::class. "Error Create", ['dados: ' => $data,
+        'browser' => $_SERVER["HTTP_USER_AGENT"],
+        'URI' => $_SERVER["REQUEST_URI"],
+        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+        return false;
     }
-
-    public function updateInvitation($data)
+    /**
+     * Método para atualizar o convite
+     *
+     * @param [array] $data
+     * @return bool
+     */
+    public function updateInvitation(array $data)
     {
         $idInvitation = $data['idconvite'];
         if ($this->where('idconvite', '=', $idInvitation)->update($data))
         {
             return true;
         };
-        Log::error(self::class. "Error Update", ['dados: ' => $data]);
+        Log::error(self::class. "Error Update", ['dados: ' => $data,
+        'browser' => $_SERVER["HTTP_USER_AGENT"],
+        'URI' => $_SERVER["REQUEST_URI"],
+        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
         return false;
     }
-
-    public function deleteInvitation($idInvitation)
+    /**
+     * Método para deletar o convite
+     *
+     * @param [string] $idInvitation
+     * @return bool
+     */
+    public function deleteInvitation(string $idInvitation)
     {
         if ($this->where('idconvite', '=', $idInvitation)->delete())
         {
             return true;
         };
-        Log::error(self::class. "Error Delete", ['idComentario: ' => $idInvitation]);
+        Log::error(self::class. "Error Delete", ['idComentario: ' => $idInvitation,
+        'browser' => $_SERVER["HTTP_USER_AGENT"],
+        'URI' => $_SERVER["REQUEST_URI"],
+        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
         return false;
     }
 }

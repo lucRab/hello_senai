@@ -36,8 +36,7 @@ class UserController extends Controller
     {
         $data = $request->validated();
         $data['senha'] = bcrypt($request->senha);
-        
-        Log::info(self::class. ' Requisição:: Create usuario', [ 'dados' => $data]);
+       
         $this->repository->createUser($data);
     }
 
@@ -57,7 +56,6 @@ class UserController extends Controller
     {
         $user = $this->repository->findOrFail($id);
         $data = $request->validated();
-        Log::info(self::class. ' Requisição:: Update usuario', [ 'usuario' => $user,'dados' => $data]);
         if ($user->status != 'ativo') throw new NotFoundHttpException;
         if ($request->senha)
         {

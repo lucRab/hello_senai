@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Log;
 use Laravel\Sanctum\HasApiTokens; 
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\V1\ProjectResource;
@@ -56,6 +57,10 @@ class Project extends Model
         {
             return true;
         };
+        Log::error(self::class. "Error Update", ['dados: ' => $data,
+        'browser' => $_SERVER["HTTP_USER_AGENT"],
+        'URI' => $_SERVER["REQUEST_URI"],
+        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
         return false;
     }
     /**
@@ -70,6 +75,7 @@ class Project extends Model
         {
             return true;
         };
+        Log::error(self::class. "Error Delete", ['id Projeto: ' => $idProject]);
         return false;
     }
 
@@ -84,6 +90,7 @@ class Project extends Model
      */
     public function linkGit($data) {
         if(DB::table('link')->insertGetId($data)) return true;
+        Log::error(self::class. "Error Insert", ['Dados: ' => $data]);
         return false;
     }
     /**
@@ -94,6 +101,7 @@ class Project extends Model
      */
     public function denunciaProjeto($data) {
         if(DB::table('denuncia')->insert($data)) return  true;
+        Log::error(self::class. "Error Denuncia", ['Dados: ' => $data]);
         return false;
     }
     /**
@@ -105,6 +113,7 @@ class Project extends Model
      */
     public function vinculationChallenge(array $idDesafio,string $idProjeto) {
         if($this->where('idprojeto', '=', $idProjeto)->update($idDesafio)) return true;
+        Log::error(self::class. "Error Create", ['id Projeto: ' => $idProjeto, $idDesafio]);
         return false;
     }
 }

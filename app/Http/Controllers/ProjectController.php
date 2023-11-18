@@ -89,7 +89,6 @@ class ProjectController extends Controller
     {
         $project = $this->service->getBySlug($slug);
         $user = Auth::guard('sanctum')->user();
-        Log::info(self::class. ' Requisição:: Update usuario', [ 'usuario' => $user,'dados' => $request->all()]);
         
         try {     
             //VERIFICAR SE O USUÁRIO QUE POSTOU É O MESMO QUE ATUALIZARÁ
@@ -116,7 +115,6 @@ class ProjectController extends Controller
     {
         $project = $this->service->getBySlug($slug);
         $user = Auth::guard('sanctum')->user();
-        Log::info(self::class. ' Requisição:: Delete Projeto', [ 'usuario' => $user]);
         try{
             CustomException::authorizedActionException('project-update', $user, $project);
             CustomException::actionException($this->repository->deleteProject($project->idprojeto));

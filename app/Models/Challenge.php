@@ -5,35 +5,91 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Log;
 
 class Challenge extends Invitation
 {
-    protected $table = "desafio";
     protected $primaryKey = null;
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'idusuario');
+    }
     /**
      * Método de criação de desafio
      *
      * @param [array] $data
-     * @return int
+     * @return bool
      */
     public function createChallenge($data) {
-        $id = $this->insertGetId($data);
-        return $id;
+        if(DB::table('desafio')->insert($data)) {
+            return true;
+        }
+        Log::error(self::class. "Error Delete", ['dados: ' => $data,
+        'browser' => $_SERVER["HTTP_USER_AGENT"],
+        'URI' => $_SERVER["REQUEST_URI"],
+        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+        return false;
     }
-
-    public function updateChallenge($idprofessor, $idconvite, $data) {
-        DB::table('desafio as d')
-        ->join('convite as c','d.idconvite','=','c.idconvite')
-        ->where('idprofessor','=',$idprofessor,'and','idconvite', '=', $idconvite)
-        ->update($data);
+    /**
+     * Método para atualizar o desafio
+     *
+     * @param [string] $idprofessor
+     * @param [string] $idconvite
+     * @param [array] $data
+     * @return bool
+     */
+    public function updateChallenge(string $idprofessor, string $idconvite, $data, string $img = null) {
+        
+            if(DB::table('convite as c')
+            ->join('desafio as d','d.idconvite','=','c.idconvite')
+            ->where('idprofessor','=',$idprofessor,'and','idconvite', '=', $idconvite)
+            ->update($data)) {
+                if($img != null) {
+                    $this->where('idprofessor','=',$idprofessor,'and','idconvite', '=', $idconvite)->update(['imagem' => $img]);
+                }
+                return true;
+            }
+        Log::error(self::class. "Error Delete", ['idConvite: ' => $idconvite,
+                                                'idprofessor' => $idprofessor,
+                                                'dados' => $data,
+                                                'browser' => $_SERVER["HTTP_USER_AGENT"],
+                                                'URI' => $_SERVER["REQUEST_URI"],
+                                                'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+        return false;
     }
-
-    public function deleteChallenge($idconvite, $idprofessor) {
-        $this->where('idconvite','=',$idconvite, 'and', 'idprofessor', '=', $idprofessor)
-        ->delete();
+    /**
+     * Método para deletar o desafio
+     *
+     * @param [string] $idconvite
+     * @param [string] $idprofessor
+     * @return bool
+     */
+    public function deleteChallenge(string $idconvite,string $idprofessor) {
+        if(!DB::table('desafio')->where('idconvite','=',$idconvite, 'and', 'idprofessor', '=', $idprofessor)
+        ->delete()) {
+            Log::error(self::class. "Error Delete", ['idConvite: ' => $idconvite,
+                                                     'idprofessor' => $idprofessor,
+                                                     'browser' => $_SERVER["HTTP_USER_AGENT"],
+                                                     'URI' => $_SERVER["REQUEST_URI"],
+                                                     'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+            return false;
+        }
 
         $this->deleteInvite($idconvite);
+        return true;
+    }
+    public function createInvitation(array $data) { 
+        $id = DB::table('convite')->insertGetId($data);
+        return $id;
+    
+    }
+    public function getbySlug($slug) {
+        $get = DB::table('desafio as d')
+        ->join('convite as c','d.idconvite','=','c.idconvite')
+        ->where('c.slug', '=', $slug)->get('idprofessor')->toArray();
+        var_dump($get);
+        return $get;
     }
     use HasFactory;
 }

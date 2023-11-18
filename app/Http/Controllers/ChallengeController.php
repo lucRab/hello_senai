@@ -3,13 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Challenge;
+use App\Services\ChallengeService;
+use App\Services\CustomException;
+use Auth;
+use Exception;
 use Illuminate\Http\Request;
 
 class ChallengeController extends Controller
 {
     private Challenge  $challenge;
+    private $service;
     
     public function __construct() {
+        $this->service = new ChallengeService();
         $this->challenge = new Challenge();
     }
     /**
@@ -33,12 +39,27 @@ class ChallengeController extends Controller
      */
     public function store(Request $request)
     {
+        $user = Auth::guard('sanctum')->user();
         $data = $request->all();
-        $invite = $this->tratamenteDataInvite($data);
-        $id = $this->challenge->createInvite($invite);
-        $challege = $this->tratamenteDataChallenge($data, $id);
+        try {
+            CustomException::authorizedActionException('challenge-create', $user);
+            
+            $invite = $this->tratamenteDataInvite($data);
+            $userId = $user->idusuario;
+            $slug = $this->service->generateSlug($data['titulo']);
 
-        $this->challenge->createChallenge($data);
+            $invite['idusuario'] = $userId;
+            $invite['slug'] = $slug;
+
+            CustomException::actionException($id = $this->challenge->createInvitation($invite));
+            
+            $challege = $this->tratamenteDataChallenge($data, $id);
+            $challege['idprofessor'] = $userId;
+
+            CustomException::actionException($this->challenge->createChallenge($challege));
+        } catch(Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 403); 
+        }
     }
 
     /**
@@ -60,23 +81,38 @@ class ChallengeController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Challenge $challenge)
-    {
-        //
+    public function update(Request $request, $slug)
+    {   
+        $desafio = $this->service->getBySlug($slug);
+        $user = Auth::guard('sanctum')->user();
+        try {
+            CustomException::authorizedActionException('challenge-update', $user, $desafio);
+            
+            $data = $request->all();
+            $idchallenge = $data['iddesafio'];
+            if(!empty($data['imagem'])) $img = $data['imagem'];
+
+            $challenge = $this->tratamenteDataInvite($data);
+            
+            CustomException::actionException($this->challenge->updateChallenge(Auth::guard('sanctum')->id(), $idchallenge,$challenge, $img));
+        }catch(Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 403); 
+        }
+
+
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Challenge $challenge)
+    public function destroy($slug)
     {
-        //
+        $get = $this->challenge->getbySlug($slug);
+        $this->challenge->deleteChallenge($get[0]->idconvite, $get[0]->idprofessor);
     }
 
     public function tratamenteDataInvite($data) {
         $data_invite = [
-            'idusuario'     => $data['idusuario'],
-            'data_convite'  => $data['data_convite'],
             'descricao'     => $data['descricao'],
             'titulo'        => $data['titulo']
         ];
@@ -90,8 +126,7 @@ class ChallengeController extends Controller
         }
         $data_challerge = [
             'idconvite'     => $idInvite,
-            'imagem'  => $imagem,
-            'idprofessor'     => $data['idprofessor']
+            'imagem'  => $imagem
         ];
         return $data_challerge;
     }
