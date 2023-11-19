@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CustomException;
 use Auth;
 use App\Http\Resources\V1\InvitationResource;
 use App\Http\Requests\StoreInvitationRequest;
@@ -35,22 +36,21 @@ class InvitationController extends Controller
     public function store(StoreInvitationRequest $request)
     {
         $user = Auth::guard('sanctum')->user();
-        if (Auth::guard('sanctum')->check() && $user->tokenCan('invite-store'))
-        {
+        try {
+            CustomException::authorizedActionException('invite-store', $user, "InvitationController::store");
+
             $data = $request->validated();
             $userId = $user->idusuario;
             $slug = $this->service->generateSlug($data['titulo']);
 
             $data['idusuario'] = $userId;
             $data['slug'] = $slug;
-            
-            if (!$this->repository->createInvitation($data))
-            {
-                return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
-            };       
+            CustomException::actionException($this->repository->createInvitation($data));  
             return response()->json(['message' => 'Convite Criado'], 200);
+
+        }catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 403); 
         }
-        return response()->json(['message' => 'Unauthorized'], 401);
     }
 
     /**
@@ -62,8 +62,8 @@ class InvitationController extends Controller
         $user = Auth::guard('sanctum')->user();
         
         //VERIFICAR SE O USUÁRIO QUE POSTOU É O MESMO QUE ATUALIZARÁ
-        if (Auth::guard('sanctum')->check() && $user->tokenCan('invite-update') && $user->apelido == $invitation->user->apelido)
-        {
+        try {
+            CustomException::authorizedActionException('invite-update', $user, $invitation);
             $data = $request->validated();
             $data['idconvite'] = $invitation->idconvite;
 
@@ -71,14 +71,11 @@ class InvitationController extends Controller
             {
                 $data['slug'] = $this->service->generateSlug($data['titulo']);
             }
-            
-            if (!$this->repository->updateInvitation($data))
-            {
-                return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
-            };       
+            CustomException::actionException($this->repository->updateInvitation($data));       
             return response()->json(['message' => 'Convite Atualizado'], 200);
+        }catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 403); 
         }
-        return response()->json(['message' => 'Unauthorized'], 401);
     }
 
     /**
@@ -89,14 +86,13 @@ class InvitationController extends Controller
         $invitation = $this->service->getInvitationBySlug($slug);
         $user = Auth::guard('sanctum')->user();
         
-        if (Auth::guard('sanctum')->check() && $user->tokenCan('invite-update') && $user->apelido == $invitation->user->apelido)
-        {
-            if (!$this->repository->deleteInvitation($invitation->idconvite))
-            {
-                return response()->json(['message' => 'Não Foi Possível Realizar Essa Ação'], 403);
-            };       
+        try {
+            CustomException::authorizedActionException('invite-update', $user, $invitation);
+            CustomException::actionException(!$this->repository->deleteInvitation($invitation->idconvite));   
+
             return response()->json(['message' => 'Convite Excluido'], 200);
+        }catch (\Exception $e) {
+           return response()->json(['message' => $e->getMessage()], 403); 
         }
-        return response()->json(['message' => 'Unauthorized'], 401);
     }
 }

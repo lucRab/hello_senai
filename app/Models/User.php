@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Log;
 use Laravel\Sanctum\HasApiTokens; 
 use Illuminate\Support\Facades\DB;
 use App\Models\Project;
@@ -40,7 +41,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Invitation::class);
     }
-
+    public function challenge()
+    {
+        return $this->hasMany(Challenge::class);
+    }
     public function createUser($data) {
         $data['data_criacao'] = \Carbon\Carbon::now();
         $id = $this->insertGetId($data);
@@ -52,19 +56,33 @@ class User extends Authenticatable
      * Função de atualização do Usuario;
      * @param $data  dados do usuario
      * @param $id  id do usuario
-     * @return void
+     * @return bool
      */
     public function updateUser($data,$id) {
-        return $this->where('idsuario',$id)->update($data);
+        if($this->where('idsuario',$id)->update($data))  {
+            return true;
+        }
+        Log::error(self::class. "Error Update", ['id usuario: ' => $id, 'dados' => $data,
+        'browser' => $_SERVER["HTTP_USER_AGENT"],
+        'URI' => $_SERVER["REQUEST_URI"],
+        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+        return false;
     }
 
     /**
      * Função para deletar o usuario;
      * @param $id id do usuario
-     * @return void
+     * @return bool
      */
     public function deleteUser($id) {
-        return $this->where('idusuario', $id)->delete();
+        if($this->where('idusuario', $id)->delete()) {
+            return true;
+        }
+        Log::error(self::class. "Error Delete", ['id usuario: ' => $id,
+        'browser' => $_SERVER["HTTP_USER_AGENT"],
+        'URI' => $_SERVER["REQUEST_URI"],
+        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+        return false;
     }
 
     /**
@@ -82,10 +100,17 @@ class User extends Authenticatable
     /**
      * Função para desativar a conta do usuario;
      * @param $id id do usuario
-     * @return void
+     * @return bool
      */
     public function desativateUser($id) {
-        return $this->where('idusuario',$id)->update(['status' => 'inativo']);
+        if($this->where('idusuario', $id)->update(['status' => 'inativo'])) {
+            return true;
+        }
+        Log::error(self::class. "Error desativate", ['id usuario: ' => $id,
+        'browser' => $_SERVER["HTTP_USER_AGENT"],
+        'URI' => $_SERVER["REQUEST_URI"],
+        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+        return false; 
     }
     
     /**
@@ -94,7 +119,7 @@ class User extends Authenticatable
      * @return array
      */
     public function getByNickname($nickname) {
-        return $this->where('apelido', $nickname)->get()->toArray();
+        return $this->where('apelido', '=',$nickname)->get()->toArray();
     }
 
     /**
@@ -106,9 +131,7 @@ class User extends Authenticatable
     }
 
     public function getAuthPassword() {
-        var_dump($this->senha);
         return $this->senha;
     }
-    
-    use HasFactory;
+
 }

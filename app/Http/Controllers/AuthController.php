@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use App\Services\AuthService;
 use App\Http\Resources\V1\UserResource;
 use App\Http\Requests\StoreTeacherRequest;
+use Log;
 
 class AuthController extends Controller
 {
@@ -22,7 +23,7 @@ class AuthController extends Controller
     {      
         $this->service = new AuthService();
     }
-
+    
     public function getAbilities()
     {
         return ['project-store', 'project-update', 'project-destroy', 'invite-store', 'invite-update', 'invite-destroy'];
@@ -35,6 +36,7 @@ class AuthController extends Controller
 
     public function registerTeacher(StoreTeacherRequest $request)
     {
+        Log::info(self::class. ' Requisição de registro de professor', ['dados' => $request->all()]);
         if (!Auth::guard('sanctum')->user()->tokenCan('teacher-store'))
         {
             return response()->json("Unauthorized", 401);
@@ -46,7 +48,8 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = Auth::attempt($request->only('email', 'password'));
+        Log::info(self::class. ' Requisição de login', ['dados' => $request->all()]);
+        $credentials = Auth::attempt($request->only('email', 'senha'));
         $abilities = $this->getAbilities();
         
         if ($credentials)
@@ -54,6 +57,10 @@ class AuthController extends Controller
             $userId = Auth::user()->idusuario;
             if ($this->service->isAdm($userId))
             {
+                Log::info(self::class. " Login realizado",['dados' => $request->all(),
+                "browser" => $_SERVER["HTTP_USER_AGENT"],
+                'URI' => $_SERVER["REQUEST_URI"],
+                'Server' => $_SERVER["SERVER_SOFTWARE"]]);
                 return $request->user()->createToken('token');
             }
             else
@@ -64,11 +71,19 @@ class AuthController extends Controller
                     $abilities[] = 'challenge-update';
                     $abilities[] = 'challenge-destroy';
                 }
+                Log::info(self::class. " Login realizado",['dados' => $request->all(),
+                "browser" => $_SERVER["HTTP_USER_AGENT"],
+                'URI' => $_SERVER["REQUEST_URI"],
+                'Server' => $_SERVER["SERVER_SOFTWARE"]]);
                 return $request->user()->createToken('token', $abilities);
             }
         }
         else
         {
+            Log::error(self::class. " Error Login",['dados' => $request->all(),
+                                                    "browser" => $_SERVER["HTTP_USER_AGENT"],
+                                                    'URI' => $_SERVER["REQUEST_URI"],
+                                                    'Server' => $_SERVER["SERVER_SOFTWARE"]]);
             return response()->json("Dados Incorretos", 403);
         }
     }
