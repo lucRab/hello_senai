@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Auth;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -62,10 +63,7 @@ class User extends Authenticatable
         if($this->where('idsuario',$id)->update($data))  {
             return true;
         }
-        Log::error(self::class. "Error Update", ['id usuario: ' => $id, 'dados' => $data,
-        'browser' => $_SERVER["HTTP_USER_AGENT"],
-        'URI' => $_SERVER["REQUEST_URI"],
-        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+        Log::error(self::class. "Error Update", ['id usuario: ' => $id, 'dados' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false;
     }
 
@@ -78,10 +76,7 @@ class User extends Authenticatable
         if($this->where('idusuario', $id)->delete()) {
             return true;
         }
-        Log::error(self::class. "Error Delete", ['id usuario: ' => $id,
-        'browser' => $_SERVER["HTTP_USER_AGENT"],
-        'URI' => $_SERVER["REQUEST_URI"],
-        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+        Log::error(self::class. "Error Delete", ['id usuario: ' => $id, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false;
     }
 
@@ -106,10 +101,7 @@ class User extends Authenticatable
         if($this->where('idusuario', $id)->update(['status' => 'inativo'])) {
             return true;
         }
-        Log::error(self::class. "Error desativate", ['id usuario: ' => $id,
-        'browser' => $_SERVER["HTTP_USER_AGENT"],
-        'URI' => $_SERVER["REQUEST_URI"],
-        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+        Log::error(self::class. "Error desativate", ['id usuario: ' => $id, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false; 
     }
     

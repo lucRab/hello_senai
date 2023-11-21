@@ -50,12 +50,16 @@ class ChallengeController extends Controller
 
             $invite['idusuario'] = $userId;
             $invite['slug'] = $slug;
-
+            
             CustomException::actionException($id = $this->challenge->createInvitation($invite));
             
             $challege = $this->tratamenteDataChallenge($data, $id);
             $challege['idprofessor'] = $userId;
 
+            if($data['imagem']) {
+                $extension = $data['imagem']->getClientOriginalExtension();
+                $challege['imagem'] = $data['imagem']->storeAs('projects', $invite['slug'].now().$extension);
+            }
             CustomException::actionException($this->challenge->createChallenge($challege));
         } catch(Exception $e) {
             return response()->json(['message' => $e->getMessage()], 403); 
@@ -90,8 +94,10 @@ class ChallengeController extends Controller
             
             $data = $request->all();
             $idchallenge = $data['iddesafio'];
-            if(!empty($data['imagem'])) $img = $data['imagem'];
-
+            if(!empty($data['imagem'])) {
+                $extension = $data['imagem']->getClientOriginalExtension();
+                $img = $data['imagem']>storeAs('projects', $data['slug'].now().$extension);
+            }
             $challenge = $this->tratamenteDataInvite($data);
             
             CustomException::actionException($this->challenge->updateChallenge(Auth::guard('sanctum')->id(), $idchallenge,$challenge, $img));

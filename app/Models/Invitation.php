@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Auth;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
@@ -40,10 +41,7 @@ class Invitation extends Model
         if ($this->insert($data)) {
             return true;
         }
-        Log::error(self::class. "Error Create", ['dados: ' => $data,
-        'browser' => $_SERVER["HTTP_USER_AGENT"],
-        'URI' => $_SERVER["REQUEST_URI"],
-        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+        Log::error(self::class. "Error Create", ['dados: ' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false;
     }
     /**
@@ -59,10 +57,7 @@ class Invitation extends Model
         {
             return true;
         };
-        Log::error(self::class. "Error Update", ['dados: ' => $data,
-        'browser' => $_SERVER["HTTP_USER_AGENT"],
-        'URI' => $_SERVER["REQUEST_URI"],
-        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+        Log::error(self::class. "Error Update", ['dados: ' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false;
     }
     /**
@@ -77,10 +72,7 @@ class Invitation extends Model
         {
             return true;
         };
-        Log::error(self::class. "Error Delete", ['idComentario: ' => $idInvitation,
-        'browser' => $_SERVER["HTTP_USER_AGENT"],
-        'URI' => $_SERVER["REQUEST_URI"],
-        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+        Log::error(self::class. "Error Delete", ['idComentario: ' => $idInvitation, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false;
     }
 }

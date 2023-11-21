@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Auth;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Log;
@@ -28,10 +29,7 @@ class Comment extends Model
         if($this->insert($data)) {
             return true;
         }
-        Log::error(self::class. "Error Create", ['dados: ' => $data,
-        'browser' => $_SERVER["HTTP_USER_AGENT"],
-        'URI' => $_SERVER["REQUEST_URI"],
-        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+        Log::error(self::class. "Error Create", ['dados: ' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false;
     }
     /**
@@ -45,10 +43,7 @@ class Comment extends Model
         if($this->where('idcomentario', '=', $idComment)->update($data)) {
             return true;
         }
-        Log::error(self::class. "Error Update", ['idComentario: ' => $idComment, 'dados: ' => $data,
-        'browser' => $_SERVER["HTTP_USER_AGENT"],
-        'URI' => $_SERVER["REQUEST_URI"],
-        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+        Log::error(self::class. "Error Update", ['idComentario: ' => $idComment, 'dados: ' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false;
     }
     /**
@@ -61,10 +56,7 @@ class Comment extends Model
         if($this->where('idcomentario', '=', $idComment)->delete()) {
             return true;
         }
-        Log::error(self::class. "Error Delete", ['idComentario: ' => $idComment,
-        'browser' => $_SERVER["HTTP_USER_AGENT"],
-        'URI' => $_SERVER["REQUEST_URI"],
-        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+        Log::error(self::class. "Error Delete", ['idComentario: ' => $idComment, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false;
     }
     /**

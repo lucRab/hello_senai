@@ -18,9 +18,9 @@ class LogViewerMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = \Auth::guard('sanctum')->user();
-        var_dump($user);
-        dd('LogViewerMiddleware');
+        // $user = \Auth::guard('sanctum')->user();
+        // var_dump($user);
+        // dd('LogViewerMiddleware');
         return $next($request);
     }
 }

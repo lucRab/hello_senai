@@ -55,7 +55,10 @@ class ProjectController extends Controller
             $project['idusuario'] = $userId;
             $project['slug'] = $slug;
 
-            
+            if($data['imagem']) {
+                $extension = $data['imagem']->getClientOriginalExtension();
+                $data['imagem'] = $data['imagem']->storeAs('projects', $project['slug'].$extension);
+            }
             CustomException::actionException($idprojeto =$this->repository->createProject($project));
             
             $link = [
@@ -100,6 +103,10 @@ class ProjectController extends Controller
             if ($data['nome_projeto'] != $project->nome_projeto)
             {
                 $data['slug'] = $this->service->generateSlug($data['nome_projeto']);
+            }
+            if($data['imagem']) {
+                $extension = $data['imagem']->getClientOriginalExtension();
+                $data['imagem'] = $data['imagem']->storeAs('projects', $project['slug'].$extension);
             }
             CustomException::actionException($this->repository->updateProject($data));
             return response()->json(['message' => 'Projeto Atualizado'], 200);
