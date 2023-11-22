@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Auth;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
@@ -57,10 +58,7 @@ class Project extends Model
         {
             return true;
         };
-        Log::error(self::class. "Error Update", ['dados: ' => $data,
-        'browser' => $_SERVER["HTTP_USER_AGENT"],
-        'URI' => $_SERVER["REQUEST_URI"],
-        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+        Log::error(self::class. "Error Update", ['dados: ' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false;
     }
     /**
@@ -75,7 +73,8 @@ class Project extends Model
         {
             return true;
         };
-        Log::error(self::class. "Error Delete", ['id Projeto: ' => $idProject]);
+        Log::error(self::class. "Error Delete", ['id Projeto: ' => $idProject,
+        $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false;
     }
 
@@ -90,7 +89,7 @@ class Project extends Model
      */
     public function linkGit($data) {
         if(DB::table('link')->insertGetId($data)) return true;
-        Log::error(self::class. "Error Insert", ['Dados: ' => $data]);
+        Log::error(self::class. "Error Insert", ['Dados: ' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false;
     }
     /**
@@ -101,7 +100,7 @@ class Project extends Model
      */
     public function denunciaProjeto($data) {
         if(DB::table('denuncia')->insert($data)) return  true;
-        Log::error(self::class. "Error Denuncia", ['Dados: ' => $data]);
+        Log::error(self::class. "Error Denuncia", ['Dados: ' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false;
     }
     /**
@@ -113,7 +112,7 @@ class Project extends Model
      */
     public function vinculationChallenge(array $idDesafio,string $idProjeto) {
         if($this->where('idprojeto', '=', $idProjeto)->update($idDesafio)) return true;
-        Log::error(self::class. "Error Create", ['id Projeto: ' => $idProjeto, $idDesafio]);
+        Log::error(self::class. "Error Create", ['id Projeto: ' => $idProjeto, $idDesafio, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false;
     }
 }

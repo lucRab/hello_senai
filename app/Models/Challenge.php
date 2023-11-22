@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Auth;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +12,16 @@ class Challenge extends Invitation
 {
     protected $primaryKey = null;
 
+    protected $fillable = [
+        'titulo',
+        'descricao',
+        'data_convite',
+        'idusuario',
+        'slug',
+        'idprofessor',
+        'idconvite',
+        'imagem',
+    ];
     public function user()
     {
         return $this->belongsTo(User::class, 'idusuario');
@@ -23,12 +34,9 @@ class Challenge extends Invitation
      */
     public function createChallenge($data) {
         if(DB::table('desafio')->insert($data)) {
-            return true;
+            return false;
         }
-        Log::error(self::class. "Error Delete", ['dados: ' => $data,
-        'browser' => $_SERVER["HTTP_USER_AGENT"],
-        'URI' => $_SERVER["REQUEST_URI"],
-        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+        Log::error(self::class. "Error Delete", ['dados: ' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false;
     }
     /**
@@ -52,10 +60,7 @@ class Challenge extends Invitation
             }
         Log::error(self::class. "Error Delete", ['idConvite: ' => $idconvite,
                                                 'idprofessor' => $idprofessor,
-                                                'dados' => $data,
-                                                'browser' => $_SERVER["HTTP_USER_AGENT"],
-                                                'URI' => $_SERVER["REQUEST_URI"],
-                                                'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+                                                'dados' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false;
     }
     /**
@@ -66,17 +71,16 @@ class Challenge extends Invitation
      * @return bool
      */
     public function deleteChallenge(string $idconvite,string $idprofessor) {
+        
         if(!DB::table('desafio')->where('idconvite','=',$idconvite, 'and', 'idprofessor', '=', $idprofessor)
         ->delete()) {
             Log::error(self::class. "Error Delete", ['idConvite: ' => $idconvite,
-                                                     'idprofessor' => $idprofessor,
-                                                     'browser' => $_SERVER["HTTP_USER_AGENT"],
-                                                     'URI' => $_SERVER["REQUEST_URI"],
-                                                     'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+                                                     'idprofessor' => $idprofessor, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
             return false;
         }
 
-        $this->deleteInvite($idconvite);
+        $this->deleteInvitation($idconvite);
+        
         return true;
     }
     public function createInvitation(array $data) { 
@@ -87,9 +91,18 @@ class Challenge extends Invitation
     public function getbySlug($slug) {
         $get = DB::table('desafio as d')
         ->join('convite as c','d.idconvite','=','c.idconvite')
-        ->where('c.slug', '=', $slug)->get('idprofessor')->toArray();
-        var_dump($get);
+        ->where('c.slug', '=', $slug)->get(['d.idprofessor','c.idconvite'])->toArray();
         return $get;
+    }
+
+    public function deleteInvitation(string $idInvitation)
+    {
+        if (DB::table('convite')->where('idconvite', '=', $idInvitation)->delete())
+        {
+            return true;
+        };
+        Log::error(self::class. "Error Delete", ['idComentario: ' => $idInvitation, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
+        return false;
     }
     use HasFactory;
 }

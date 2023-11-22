@@ -22,8 +22,8 @@ class UpdateInvitationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'titulo' => 'required|min:3|max:45',
-            'descricao' => 'required|min:3'
+            'titulo' => 'nullable|min:3|max:45',
+            'descricao' => 'nullable|min:3'
         ];
     }
 }

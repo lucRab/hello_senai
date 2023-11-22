@@ -9,10 +9,7 @@ class CustomException {
     
     static function actionException($index) {
         if(!$index) {
-            Log::error(self::class. ' Error', [   'action' => $index,
-            'browser' => $_SERVER["HTTP_USER_AGENT"],
-            'URI' => $_SERVER["REQUEST_URI"],
-            'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+            Log::error(self::class. ' Error', [$GLOBALS['request'], Auth::guard('sanctum')->user()]);
             
             throw new \Exception('Não Foi Possível Realizar Essa Ação');
         }

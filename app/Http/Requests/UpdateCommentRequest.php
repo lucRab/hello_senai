@@ -22,7 +22,7 @@ class UpdateCommentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'texto' => 'required|min:1|max:400',
+            'texto' => 'nullable|min:1|max:400',
         ];
     }
 }

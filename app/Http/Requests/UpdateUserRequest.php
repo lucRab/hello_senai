@@ -31,7 +31,7 @@ class UpdateUserRequest extends FormRequest
                 'unique:usuario',
                 'regex:/ba.estudante.senai\.br/'
             ],
-            'senha' => 'required|min:6|max:255'
+            'senha' => 'nullable|min:6|max:255'
         ];
 
         if ($this->method() === 'PUT')

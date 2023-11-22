@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\User;
+use Auth;
 use Illuminate\Support\Facades\DB;
 use Log;
 
@@ -12,10 +13,7 @@ class Teacher extends User
     {
         $idUser = parent::createUser($data);
         if(!DB::table('professor')->insert(['idusuario' => $idUser])) {
-            Log::error(self::class. "Error Create", ['dados: ' => $data,
-            'browser' => $_SERVER["HTTP_USER_AGENT"],
-            'URI' => $_SERVER["REQUEST_URI"],
-            'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+            Log::error(self::class. "Error Create", ['dados: ' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
             return false;
         }
         return true;
