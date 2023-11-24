@@ -18,3 +18,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 Route::get('/email', [LogEmailController::class,'send']);
+
+Route::get('/teste', function() {
+    return view('teste');
+});

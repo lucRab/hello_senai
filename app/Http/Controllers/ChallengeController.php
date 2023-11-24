@@ -10,6 +10,7 @@ use App\Services\CustomException;
 use Auth;
 use Exception;
 use Illuminate\Http\Request;
+use Validator;
 
 class ChallengeController extends Controller
 {
@@ -38,28 +39,41 @@ class ChallengeController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreChallengeRequest $request) {
-        $user = Auth::guard('sanctum')->user();
-        $data = $request->validated();
-        try {
-            CustomException::authorizedActionException('challenge-create', $user);
-            
-            $invite = $this->tratamenteDataInvite($data);
-            $userId = $user->idusuario;
-            $slug = $this->service->generateSlug($data['titulo']);
-
-            $invite['idusuario'] = $userId;
-            $invite['slug'] = $slug;
-            
-            CustomException::actionException($id = $this->challenge->createInvitation($invite));
-            
-            $challege = $this->tratamenteDataChallenge($data, $id, $slug);
-            $challege['idprofessor'] = $userId;
-
-            CustomException::actionException($this->challenge->createChallenge($challege));
-        } catch(Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 403); 
+    public function store(Request $request) {
+        $data = $request->all();
+        $v =  Validator::make($request->all(),[
+            'titulo' => 'required|min:3|max:45',
+            'descricao' => 'required|min:3',
+            'imagem' => 'nullable|image|max:1024',
+        ]); 
+        if($v->fails()) {
+            var_dump('b');
         }
+        var_dump($v->validated());
+            //  $extension = $data['image']->getClientOriginalExtension();
+            //  $img = $data['image']->storeAs('projects', 'a.'.$extension);
+            
+        // $user = Auth::guard('sanctum')->user();
+        // $data = $request->validated();
+        // try {
+        //     CustomException::authorizedActionException('challenge-create', $user);
+            
+        //     $invite = $this->tratamenteDataInvite($data);
+        //     $userId = $user->idusuario;
+        //     $slug = $this->service->generateSlug($data['titulo']);
+
+        //     $invite['idusuario'] = $userId;
+        //     $invite['slug'] = $slug;
+            
+        //     CustomException::actionException($id = $this->challenge->createInvitation($invite));
+            
+        //     $challege = $this->tratamenteDataChallenge($data, $id, $slug);
+        //     $challege['idprofessor'] = $userId;
+
+        //     CustomException::actionException($this->challenge->createChallenge($challege));
+        // } catch(Exception $e) {
+        //     return response()->json(['message' => $e->getMessage()], 403); 
+        // }
     }
 
     /**
