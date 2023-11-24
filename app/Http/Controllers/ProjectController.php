@@ -48,17 +48,14 @@ class ProjectController extends Controller
         try {
             CustomException::authorizedActionException('project-store', $user);
             $data = $request->validated();
-            $project = $this->tratamentoDados($data);
             $userId = $user->idusuario;
-            $slug = $this->service->generateSlug($project['nome_projeto']);
-
+            $slug = $this->service->generateSlug($data['nome_projeto']);
+            
+            $project = $this->tratamentoDados($data, $slug);
             $project['idusuario'] = $userId;
             $project['slug'] = $slug;
 
-            if($data['imagem']) {
-                $extension = $data['imagem']->getClientOriginalExtension();
-                $data['imagem'] = $data['imagem']->storeAs('projects', $project['slug'].$extension);
-            }
+            
             CustomException::actionException($idprojeto =$this->repository->createProject($project));
             
             $link = [
@@ -106,7 +103,7 @@ class ProjectController extends Controller
             }
             if($data['imagem']) {
                 $extension = $data['imagem']->getClientOriginalExtension();
-                $data['imagem'] = $data['imagem']->storeAs('projects', $project['slug'].$extension);
+                $data['imagem'] = $data['imagem']->storeAs('projects', $project['slug'].'.'.$extension);
             }
             CustomException::actionException($this->repository->updateProject($data));
             return response()->json(['message' => 'Projeto Atualizado'], 200);
@@ -132,12 +129,16 @@ class ProjectController extends Controller
         }       
     }
 
-    public function tratamentoDados($data) {
+    public function tratamentoDados($data, $name) {
         $tratamento = [
             'nome_projeto'  => $data['nome_projeto'],
             'descricao'     => $data['descricao'],
             'status'        => $data['status'],
         ];
+        if($data['imagem']) {
+            $extension = $data['imagem']->getClientOriginalExtension();
+            $tratamento['imagem'] = $data['imagem']->storeAs('projects', $name.'.'.$extension);
+        }
         return $tratamento;
     }
 

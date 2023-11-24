@@ -12,6 +12,16 @@ class Challenge extends Invitation
 {
     protected $primaryKey = null;
 
+    protected $fillable = [
+        'titulo',
+        'descricao',
+        'data_convite',
+        'idusuario',
+        'slug',
+        'idprofessor',
+        'idconvite',
+        'imagem',
+    ];
     public function user()
     {
         return $this->belongsTo(User::class, 'idusuario');
@@ -24,7 +34,7 @@ class Challenge extends Invitation
      */
     public function createChallenge($data) {
         if(DB::table('desafio')->insert($data)) {
-            return false;
+            return true;
         }
         Log::error(self::class. "Error Delete", ['dados: ' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false;

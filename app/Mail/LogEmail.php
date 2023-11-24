@@ -32,7 +32,7 @@ class LogEmail extends Mailable
             subject: $this->data['subject'],
         );
     }
-
+ 
     /**
      * Get the message content definition.
      */
