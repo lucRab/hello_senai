@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LogEmailController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +19,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 Route::get('/email', [LogEmailController::class,'send']);
+
+
 
 Route::get('/teste', function() {
     return view('teste');

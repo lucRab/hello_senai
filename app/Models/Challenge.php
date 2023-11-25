@@ -34,7 +34,7 @@ class Challenge extends Invitation
      */
     public function createChallenge($data) {
         if(DB::table('desafio')->insert($data)) {
-            return false;
+            return true;
         }
         Log::error(self::class. "Error Delete", ['dados: ' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false;

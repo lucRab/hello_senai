@@ -7,8 +7,10 @@ use Auth;
 use App\Http\Resources\V1\InvitationResource;
 use App\Http\Requests\StoreInvitationRequest;
 use App\Http\Requests\UpdateInvitationRequest;
+use Illuminate\Http\Request;
 use App\Models\Invitation;
 use App\Services\InvitationService;
+
 
 class InvitationController extends Controller
 {
@@ -94,5 +96,22 @@ class InvitationController extends Controller
         }catch (\Exception $e) {
            return response()->json(['message' => $e->getMessage()], 403); 
         }
+    }
+
+    public function aceitarInvite(Request $request, $slug) {
+        $user = Auth::guard('sanctum')->user();
+        $message = $request->all()['mensagem'];
+
+       $inviteUser = $this->repository->getUserInvite($slug);
+
+       $data = [
+           'idusuario' => Auth::guard('sanctum')->id(),
+           'idconvite' => $inviteUser[0]->idconvite,
+           'idusuario_convite' => $inviteUser[0]->idusuario,
+           'texto'     => $message,
+           'status'    => false,
+       ];
+       $a = $this->repository->registerEmail($data);
+       var_dump($a);
     }
 }

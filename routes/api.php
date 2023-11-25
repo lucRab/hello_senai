@@ -25,8 +25,8 @@ Route::group(['prefix' => 'v1'], function () {
     Route::post('projeto/desafio/desvincular',[ProjectController::class,'challengeDesvinculation'])->name('projeto.desvicular'); 
     Route::apiResource('convite', InvitationController::class);    
     Route::apiResource('desafio', ChallengeController::class);
-    Route::put('desafio/{professor}/{desafio}', [ChallengeController::class,'update'])->name('desafio.update');
-    Route::delete('desafio/{professor}/{desafio}', [ChallengeController::class,'destroy'])->name('desafio.delete'); 
+    Route::put('desafio/{desafio}', [ChallengeController::class,'update'])->name('desafio.update');
+    Route::delete('desafio/{desafio}', [ChallengeController::class,'destroy'])->name('desafio.delete'); 
     Route::apiResource('comentario', CommentController::class);
 });
 
@@ -36,3 +36,5 @@ Route::group(['prefix' => 'auth'], function () {
     Route::post('/create/teacher', [AuthController::class, 'registerTeacher']);   
     Route::get('/profile', [AuthController::class, 'profile']);   
 });
+
+Route::post('/teste/{convite}', [InvitationController::class,'aceitarInvite']);

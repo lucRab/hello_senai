@@ -7,10 +7,10 @@ use Illuminate\Support\Facades\DB;
 use Log;
 class CustomException {
     
-    static function actionException($index) {
+    static function actionException($index,string $action = null) {
         if(!$index) {
             Log::error(self::class. ' Error', [$GLOBALS['request'], Auth::guard('sanctum')->user()]);
-            
+            Mails::sendLogError('Erro de ação', 'Erro gerado pelo usuario '.Auth::guard('sanctum')->user()['nome']. ' após tenta realizar a ação de '. $action);
             throw new \Exception('Não Foi Possível Realizar Essa Ação');
         }
         

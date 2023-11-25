@@ -75,4 +75,22 @@ class Invitation extends Model
         Log::error(self::class. "Error Delete", ['idComentario: ' => $idInvitation, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false;
     }
+    /**
+     * Método para selecionar o usuario que criou o convite
+     *
+     * @param string $slug
+     * @return array
+     */
+    public function getUserInvite(string $slug) {
+        return DB::table('convite as c')
+        ->join('usuario as u','c.idusuario', '=', 'u.idusuario')
+        ->where('slug', '=', $slug)
+        ->get(['u.nome','u.email', 'u.idusuario', 'c.idconvite'])
+        ->toArray();
+    }
+
+    public function registerEmail(array $data) {
+        if(DB::table('registro_email')->insert($data)) return true;
+        return false;
+    }
 }

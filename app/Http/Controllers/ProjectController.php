@@ -103,7 +103,7 @@ class ProjectController extends Controller
             }
             if($data['imagem']) {
                 $extension = $data['imagem']->getClientOriginalExtension();
-                $data['imagem'] = $data['imagem']->storeAs('projects', $project['slug'].$extension);
+                $data['imagem'] = $data['imagem']->storeAs('projects', $project['slug'].'.'.$extension);
             }
             CustomException::actionException($this->repository->updateProject($data));
             return response()->json(['message' => 'Projeto Atualizado'], 200);
@@ -137,7 +137,7 @@ class ProjectController extends Controller
         ];
         if($data['imagem']) {
             $extension = $data['imagem']->getClientOriginalExtension();
-            $tratamento['imagem'] = $data['imagem']->storeAs('projects', $name.$extension);
+            $tratamento['imagem'] = $data['imagem']->storeAs('projects', $name.'.'.$extension);
         }
         return $tratamento;
     }
