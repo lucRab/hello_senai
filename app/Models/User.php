@@ -28,24 +28,34 @@ class User extends Authenticatable
     protected $primaryKey = "idusuario";
     const CREATED_AT = 'data_criacao';
     const UPDATED_AT = 'data_atualizacao';
-    /**
-     * Função para criação do usuario;
-     * @param $data - 
+   /**
+    * Método para vincular o projeto ao usuario
+    *
     */
-
     public function project()
     {
         return $this->hasMany(Project::class);
     }
-
+    /**
+     * Método para vincular o convite ao usuario
+     *
+     */
     public function invite()
     {
         return $this->hasMany(Invitation::class);
     }
+    /**
+     * Método para vincular o desafio ao usuario
+     *
+     */
     public function challenge()
     {
         return $this->hasMany(Challenge::class);
     }
+     /**
+     * Função para criação do usuario;
+     * @param $data - 
+    */
     public function createUser($data) {
         $data['data_criacao'] = \Carbon\Carbon::now();
         $id = $this->insertGetId($data);
@@ -112,14 +122,6 @@ class User extends Authenticatable
      */
     public function getByNickname($nickname) {
         return $this->where('apelido', '=',$nickname)->get()->toArray();
-    }
-
-    /**
-     * Função para selecionar todos os usuario;
-     * @return array
-     */
-    public function getAll() {
-        return $this->get()->toArray();
     }
 
     public function getAuthPassword() {

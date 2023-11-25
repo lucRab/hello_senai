@@ -18,9 +18,9 @@ class Mails
       
         
     }
-    static public function sendInvite(string $subject,string $message, $user, $email) {
+    static public function sendInvite(string $message, $user, $email) {
         $send = Mail::to($user, $email)->send(new LogEmail([
-             'fromName' =>'Error-Log',
+             'fromName' =>'Hello Senai',
              'fromEmail'=>'alert@gmail.com',
              'subject'  => 'Convite Aceito',
              'message'  => $message

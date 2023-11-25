@@ -88,7 +88,12 @@ class Invitation extends Model
         ->get(['u.nome','u.email', 'u.idusuario', 'c.idconvite'])
         ->toArray();
     }
-
+    /**
+     * Método para registrar o email no banco de dados
+     *
+     * @param array $data
+     * @return bool
+     */
     public function registerEmail(array $data) {
         if(DB::table('registro_email')->insert($data)) return true;
         return false;

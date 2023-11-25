@@ -6,7 +6,9 @@ use App\Models\User;
 use Auth;
 use Illuminate\Support\Facades\DB;
 use Log;
-
+/**
+ * Classe 
+ */
 class Teacher extends User
 {
     public function createTeacher($data)
