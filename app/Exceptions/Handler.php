@@ -28,10 +28,6 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
-
-        $this->renderable(function(NotFoundHttpException $exception) {
-            return response()->json(['message' => 'Usuario não encontrado', 'code' => 404], 404);
-        });
     }
 
 }

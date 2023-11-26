@@ -2,9 +2,9 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
-use App\Models\Invitation;
+use App\Models\Challenge;
 
-class InvitationService implements ISlugService
+class ChallengeService implements ISlugService
 {
     public function generateSlug($name)
     {
@@ -13,7 +13,7 @@ class InvitationService implements ISlugService
     }
     public function getBySlug($slug)
     {
-      if ($data = Invitation::with('user')->where('slug', '=', $slug)->first())
+      if ($data = Challenge::with('user')->where('slug', '=', $slug)->first())
       {
         return $data;
       };

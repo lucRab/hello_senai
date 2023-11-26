@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\V1\UserResource;
+use Log;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UserController extends Controller
@@ -35,7 +36,7 @@ class UserController extends Controller
     {
         $data = $request->validated();
         $data['senha'] = bcrypt($request->senha);
-        
+       
         $this->repository->createUser($data);
     }
 
@@ -72,7 +73,12 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        var_dump(Auth::user()->nome);
-        // $update = $this->repository->desativateUser($id);
+        $id = $user->id;
+        $delete = $this->repository->desativateUser($id);
+    }
+    public function vericationStatus(string $apelido) {
+        $get = $this->repository->getByNickname($apelido);
+        if($get[0]['status'] == 'Inativo') return false;
+        return true;
     }
 }
