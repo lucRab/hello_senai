@@ -128,4 +128,10 @@ class User extends Authenticatable
         return $this->senha;
     }
 
+    static public function getEmailAdm() {
+        return DB::table('usuario as u')
+        ->join('adm as a','u.idusuario','=', 'a.idusuario')
+        ->get(['u.email', 'u.nome'])
+        ->toArray();
+    }
 }

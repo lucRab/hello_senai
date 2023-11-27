@@ -43,25 +43,26 @@ class ProjectController extends Controller
      */
     public function store(StoreProjectRequest $request)
     {
+        //pega o usuario logado
         $user = Auth::guard('sanctum')->user();
-        Log::info(self::class. ' Requisição:: Create Projeto', [ 'usuario' => $user,'dados' => $request->all()]);
         try {
+            //verifica se o usuario tem autorização para realizar essa ação
             CustomException::authorizedActionException('project-store', $user);
+            //valida os dados recebido
             $data = $request->validated();
-            $userId = $user->idusuario;
+            //cria um apelido
             $slug = $this->service->generateSlug($data['nome_projeto']);
-            
+            //trata os dados 
             $project = $this->tratamentoDados($data, $slug);
-            $project['idusuario'] = $userId;
-            $project['slug'] = $slug;
-
-            
+            $project['idusuario'] = $user->idusuario;
+            //verifica se a ação feita não deu erro
             CustomException::actionException($idprojeto =$this->repository->createProject($project));
-            
+            //cria um array para inserir o link
             $link = [
                 'link' => $data['link'],
                 'idprojeto' => $idprojeto
             ];
+            //verifica se a ação feita não deu erro
             CustomException::actionException($this->repository->linkGit($link)); 
             return response()->json(['message' => 'Projeto Criado'], 200); 
         }catch (\Exception $e) {
@@ -72,8 +73,7 @@ class ProjectController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($slug)
-    {
+    public function show($slug) {
         $data = $this->service->getBySlug($slug);
         if (!$data)
         {
@@ -85,26 +85,32 @@ class ProjectController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateProjectRequest $request, $slug)
-    {
-        $project = $this->service->getBySlug($slug);
+    public function update(UpdateProjectRequest $request, $slug) {
+        //pega o usuario logado
         $user = Auth::guard('sanctum')->user();
+        //pega o apelido do projeto
+        $project = $this->service->getBySlug($slug);
         
         try {     
             //VERIFICAR SE O USUÁRIO QUE POSTOU É O MESMO QUE ATUALIZARÁ
             CustomException::authorizedActionException( 'project-update', $user, $project);
-        
+            //valida os dados recebidos
             $data = $request->validated();
             $data['idprojeto'] = $project->idprojeto;
-
+            //verifica se o nome atualizado é o mesmo que foi salvo primeiro
             if ($data['nome_projeto'] != $project->nome_projeto)
             {
+                //cria um apelido
                 $data['slug'] = $this->service->generateSlug($data['nome_projeto']);
             }
+            //verifica se a uma imagem nos dados enviado
             if($data['imagem']) {
+                //pega a extenção da imegem
                 $extension = $data['imagem']->getClientOriginalExtension();
+                //salva a imagem e pega o caminho onde ela foi salva
                 $data['imagem'] = $data['imagem']->storeAs('projects', $project['slug'].'.'.$extension);
             }
+            //verifica se a ação feita não deu erro
             CustomException::actionException($this->repository->updateProject($data));
             return response()->json(['message' => 'Projeto Atualizado'], 200);
         }catch (\Exception $e) {
@@ -115,12 +121,15 @@ class ProjectController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($slug)
-    {
-        $project = $this->service->getBySlug($slug);
+    public function destroy($slug) {
+        //pega o usuario logado
         $user = Auth::guard('sanctum')->user();
+        //pega o apelido do projeto
+        $project = $this->service->getBySlug($slug);
         try{
+            //VERIFICAR SE O USUÁRIO QUE POSTOU É O MESMO QUE DELETARA
             CustomException::authorizedActionException('project-update', $user, $project);
+            //verifica se a ação feita não deu erro
             CustomException::actionException($this->repository->deleteProject($project->idprojeto));
             return response()->json(['message' => 'Projeto Excluido'], 200);
             
@@ -129,22 +138,29 @@ class ProjectController extends Controller
         }       
     }
 
-    public function tratamentoDados($data, $name) {
+    private function tratamentoDados($data, $name) {
+         //cria o array somento com os dados para cria o projeto
         $tratamento = [
             'nome_projeto'  => $data['nome_projeto'],
             'descricao'     => $data['descricao'],
             'status'        => $data['status'],
+            'slug'          => $name,    
         ];
+        //verifica se a uma imagem nos dados enviado
         if($data['imagem']) {
+            //pega a extenção da imegem
             $extension = $data['imagem']->getClientOriginalExtension();
+            //salva a imagem e pega o caminho onde ela foi salva
             $tratamento['imagem'] = $data['imagem']->storeAs('projects', $name.'.'.$extension);
         }
         return $tratamento;
     }
 
     public function denunciationProject(DenuciaProjectRequest $request) {
+        //valida os dados recebidos
         $data = $request->validated();
         try{
+            //verifica se a ação feita não deu erro
             CustomException::actionException($this->repository->denunciaProjeto($data));
         }catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 403); 
@@ -152,13 +168,17 @@ class ProjectController extends Controller
     }
 
     public function challengeVinculation(Request $request) {
+        //pega os dados recebido
         $data = $request->all();
         $idProject = $data['idprojeto']; 
         $iddesafio = $data['iddesafio'];
+        //faz do select do projeto que quer ser vinculado
         $get = $this->repository->getProject($idProject);
+        //verifica se o projeto já estar vinculado a um desafio
         if($get[0]['iddesafio'] == null) {
             $data = ['iddesafio' => $iddesafio];
             try{
+                //verifica se a ação feita não deu erro
                 CustomException::actionException($this->repository->vinculationChallenge($data, $idProject));
             }catch (\Exception $e) {
                 return response()->json(['message' => $e->getMessage()], 403); 
@@ -169,12 +189,16 @@ class ProjectController extends Controller
     }
 
     public function challengeDesvinculation(Request $request) {
+        //pega os dados recebido
         $data = $request->all();
-        $idProject = $data['idprojeto']; 
+        $idProject = $data['idprojeto'];
+         //faz do select do projeto que quer ser vinculado
         $get = $this->repository->getProject($idProject);
+        //verifica se o projeto já estar vinculado a um desafi
         if($get[0]['iddesafio'] != null) {
             $data = ['iddesafio' => null];
             try {
+                //verifica se a ação feita não deu erro
                 CustomException::actionException($this->repository->vinculationChallenge($data, $idProject));
             }catch (\Exception $e) {
                 return response()->json(['message' => $e->getMessage()], 403); 

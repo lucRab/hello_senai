@@ -12,7 +12,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class UserController extends Controller
 {
-
     public function __construct(
         protected User $repository,
     ) 
@@ -32,19 +31,25 @@ class UserController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreUserRequest $request)
-    {
+    public function store(StoreUserRequest $request) {
+        //valida os dados recebidos
         $data = $request->validated();
-        $data['senha'] = bcrypt($request->senha);
-       
-        $this->repository->createUser($data);
+        try {
+            //encripta da senha
+            $data['senha'] = bcrypt($request->senha);
+            //tenta cria o usuario
+            $this->repository->createUser($data);
+        }catch (NotFoundHttpException $e) {
+            Log::error($e->getMessage());
+            return response()->json(['message' => $e->getMessage()], 403);
+        }
+
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $apelido)
-    { 
+    public function show(string $apelido) { 
         $user = $this->repository->findOrFail($apelido);
         return new UserResource($user);
     }
@@ -52,29 +57,32 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateUserRequest $request, string $id)
-    {
+    public function update(UpdateUserRequest $request, string $id) {
         $user = $this->repository->findOrFail($id);
+        //valida os dados recebidos
         $data = $request->validated();
+        //verifica se o usuario estar ativo
         if ($user->status != 'ativo') throw new NotFoundHttpException;
-        if ($request->senha)
-        {
+        //verifica se o usuario vai atualizar a senha
+        if ($request->senha) {
+            //encripta da senha
             $data['senha'] = \bcrypt($request->password);
         }
-        if ($request->nome)
-        {
+        //verifica se o usuario vai atualizar o nome
+        if ($request->nome) {
+            //gera um apelido a partir do nome
             $this->repository->generateUsername($data['nome'], $user->idusuario);
         }
+        //tenta atualizar o usuario
         $user->update($data);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(User $user)
-    {
-        $id = $user->id;
-        $delete = $this->repository->desativateUser($id);
+    public function destroy(User $user) {
+        //tenta desativar o usuario
+        $delete = $this->repository->desativateUser($user->id);
     }
     public function vericationStatus(string $apelido) {
         $get = $this->repository->getByNickname($apelido);

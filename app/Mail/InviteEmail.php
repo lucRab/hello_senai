@@ -30,6 +30,10 @@ class InviteEmail extends Mailable
         return new Envelope(
             from: new Address($this->data['fromEmail'], $this->data['fromName']),
             subject: $this->data['subject'],
+            replyTo: [ 
+                new Address('lucasrabelo186@gmail.com', $this->data['fromName']),
+                new Address('rabelolucas186@gmail.com', $this->data['fromName']),
+            ]
         );
     }
 
