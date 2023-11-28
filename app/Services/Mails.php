@@ -6,35 +6,41 @@ use App\Mail\LogEmail;
 use App\Models\User;
 use Mail;
 /**
- * Classe para enviar alerta de email quando um erro for registrado no log
+ * CLasse para fazer o envio de email
  */
 class Mails
 {
+    /**
+     * Método para enviar o email quando acontece algum erro
+     *
+     * @param string $subject
+     * @param string $message
+     * @return void
+     */
     static public function sendLogError(string $subject,string $message) {
-        // $a = User::getEmailAdm();
-        // var_dump($a);
-        Mail::to('l.rabelo@ba.estudante.senai.br', 'Lucas Rabelo')->send(new LogEmail([
-             'fromName' =>'Error-Log',
-             'fromEmail'=>'alert@gmail.com',
-             'subject'  => $subject,
-             'message'  => [ 'message' => $message, 'mail'=> 'teste'],
+        Mail::to('l.rabelo@ba.estudante.senai.br', 'Adiministrador')->send(new LogEmail([
+             'fromName' =>'Error-Log',//define o nome do email que será enviado
+             'fromEmail'=>'alert@gmail.com',//não funciona
+             'subject'  => $subject,//define o assundo do email
+             'message'  => [ 'message' => $message, 'mail'=> 'teste'],//define a mensagem do email
          ]));
-
-         Mail::to('lucasrabelo186@gmail.com', 'Lucas Rabelo')->send(new LogEmail([
-            'fromName' =>'Error-Log',
-            'fromEmail'=>'alert@gmail.com',
-            'subject'  => $subject,
-            'message'  => [ 'message' => $message, 'mail'=> 'teste'],
-        ]));  
     }
-    static public function sendInvite(string $message, $user, $email, $amail, $name) {
-        $send = Mail::to($email, $user)->send(new InviteEmail([
-             'fromName' =>'Hello Senai',
-             'fromEmail'=>'alert@gmail.com',
-             'subject'  => 'Convite Aceito',
-             'message'  => ['message' => $message, 'amail' => $amail,'nome' =>$name, 'user' => $user],
-         ]));
-      
-        
+    /**
+     *  Método para enviar um email quando um usario aceita um convite
+     *
+     * @param string $message
+     * @param [type] $user
+     * @param [type] $email
+     * @param [type] $amail
+     * @param [type] $name
+     * @return void
+     */
+    static public function sendInvite(string $message, string $user, string $email, string $amail, string $name) {
+        Mail::to($email, $user)->send(new InviteEmail([
+             'fromName' =>'Hello Senai',//define o nome do email que será enviado
+             'fromEmail'=>'alert@gmail.com',//não funciona
+             'subject'  => 'Convite Aceito',//define o assundo do email
+             'message'  => ['message' => $message, 'amail' => $amail,'nome' =>$name, 'user' => $user], //define a mensagem do email
+         ])); 
     }
 }

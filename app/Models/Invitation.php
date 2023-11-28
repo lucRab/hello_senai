@@ -31,6 +31,10 @@ class Invitation extends Model
     {
         return $this->belongsTo(User::class, 'idusuario');
     }
+    public function challenge()
+    {
+        return $this->belongsTo(Challenge::class);
+    }
 
     /**
      * Método para criar projeto

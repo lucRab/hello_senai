@@ -132,7 +132,7 @@ class InvitationController extends Controller
             //Salvando registro do email
             CustomException::actionException($this->repository->registerEmail($data));
             //Enviando Email para o usuario que criou o convite
-            Mails::sendInvite($message, $inviteUser[0]->nome, $inviteUser[0]->email);
+            Mails::sendInvite($message, $inviteUser[0]->nome, $inviteUser[0]->email, $user['email'], $user['nome']);
         }catch(Exception $e) {
             return response()->json(['message' => $e->getMessage()], 403);
         }

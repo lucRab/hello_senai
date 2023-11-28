@@ -26,6 +26,11 @@ class Challenge extends Invitation
     {
         return $this->belongsTo(User::class, 'idusuario');
     }
+
+    public function invitation()
+    {
+        return $this->hasMany(Invitation::class, 'idconvite');
+    }
     /**
      * Método de criação de desafio
      *

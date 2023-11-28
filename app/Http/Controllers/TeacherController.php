@@ -39,11 +39,14 @@ class TeacherController extends Controller
     public function store(StoreTeacherRequest $request)
     {   
         try {
+            //pega o usuario logado
             $user = Auth::guard('sanctum')->user();
+            //verifica se o usuario tem permissão para fazer essa ação
             CustomException::authorizedActionException( 'teacher-store', $user);
-            
+            //valida os dados
             $data = $request->validated();
             $data['senha'] = bcrypt($request->senha);
+            //verifica se a ação não gerou um erro 
             CustomException::actionException($this->repository->createTeacher($data));
 
             return response()->json(['message' => 'Professor Criado Com Sucesso', 200]);

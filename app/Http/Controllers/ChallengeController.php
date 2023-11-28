@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreChallengeRequest;
 use App\Http\Requests\UpdateChallengeRequest;
+use App\Http\Resources\v1\ChallengeResource;
 use App\Models\Challenge;
 use App\Services\ChallengeService;
 use App\Services\CustomException;
@@ -14,19 +15,19 @@ use Validator;
 
 class ChallengeController extends Controller
 {
-    private Challenge  $challenge;
     private $service;
     
-    public function __construct() {
+    public function __construct(
+        protected Challenge $repository
+    ) {
         $this->service = new ChallengeService();
-        $this->challenge = new Challenge();
     }
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        //
+    public function index() {
+        $challenge = $this->repository->with(['user', 'invitation'])->paginate();
+        return ChallengeResource::collection($challenge);
     }
 
     /**
@@ -55,12 +56,12 @@ class ChallengeController extends Controller
             $invite['idusuario'] = $user->idusuario;
             $invite['slug'] = $slug;
             //verifica se a ação feita não deu erro
-            CustomException::actionException($id = $this->challenge->createInvitation($invite));
+            CustomException::actionException($id = $this->repository->createInvitation($invite));
         
             $challege = $this->tratamenteDataChallenge($data, $id, $slug); //trata os dados para criar o desafio
             $challege['idprofessor'] = $user->idusuario;
-            //verifica se a ação feita não deu erro
-            CustomException::actionException($this->challenge->createChallenge($challege), 'challenge-create');
+            //verifica se a ação feita não gerou um erro
+            CustomException::actionException($this->repository->createChallenge($challege), 'challenge-create');
         } catch(Exception $e) {
              return response()->json(['message' => $e->getMessage()], 403); 
         }
@@ -104,8 +105,8 @@ class ChallengeController extends Controller
             }
             //trata os dados para atualizar o desafio
             $challenge = $this->tratamenteDataInvite($data);
-            //verifica se a ação feita não deu erro
-            CustomException::actionException($this->challenge->updateChallenge(Auth::guard('sanctum')->id(), $idchallenge,$challenge, $img));
+            //verifica se a ação feita não gerou um erro
+            CustomException::actionException($this->repository->updateChallenge(Auth::guard('sanctum')->id(), $idchallenge,$challenge, $img));
         }catch(Exception $e) {
             return response()->json(['message' => $e->getMessage()], 403); 
         }
@@ -118,11 +119,11 @@ class ChallengeController extends Controller
         //Pega o usuario logado
         $user = Auth::guard('sanctum')->user();
         try{
-            $get = $this->challenge->getbySlug($slug);//pega o apelido do desafio
+            $get = $this->repository->getbySlug($slug);//pega o apelido do desafio
             //verifica se o usuario tem autorização para realizar essa ação
             CustomException::authorizedActionException('challenge-delete', $user, $get);
-            //verifica se a ação feita não deu erro
-            CustomException::actionException($this->challenge->deleteChallenge($get[0]->idconvite,
+            //verifica se a ação feita não gerou um erro
+            CustomException::actionException($this->repository->deleteChallenge($get[0]->idconvite,
             $get[0]->idprofessor));
         }catch(Exception $e) {
             return response()->json(['message' => $e->getMessage()], 403); 
