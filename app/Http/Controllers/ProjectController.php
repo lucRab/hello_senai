@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\DenuciaProjectRequest;
+use App\Models\User;
 use App\Services\CustomException;
 use Auth;
 use App\Models\Project;
@@ -12,11 +13,13 @@ use App\Http\Requests\UpdateProjectRequest;
 use App\Http\Resources\V1\ProjectResource;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ProjectController extends Controller
 {
     private $service;
+    private $users;
     /**
      * Método construtor
      *
@@ -27,6 +30,7 @@ class ProjectController extends Controller
     )
     {
         $this->service = new ProjectService();
+        $this->users = new User();
     }
 
     /**
@@ -48,19 +52,37 @@ class ProjectController extends Controller
         try {
             //verifica se o usuario tem autorização para realizar essa ação
             CustomException::authorizedActionException('project-store', $user);
+
             //valida os dados recebido
             $data = $request->validated();
+            //clona os dados recebidos
+            $dataClone = $data;
+            //retira os dados dos participantes para fazer o insert no banco
+            unset($data['participantes']);
             //cria um apelido
-            $slug = $this->service->generateSlug($data['nome_projeto']);
+            $slug = $this->service->generateSlug($data['nomeProjeto']);
+
             //trata os dados 
             $project = $this->tratamentoDados($data, $slug);
             $project['idusuario'] = $user->idusuario;
             //verifica se a ação feita não deu erro
-            CustomException::actionException($idprojeto =$this->repository->createProject($project));
+            CustomException::actionException($projectId = $this->repository->createProject($project));
+            //Pega os dados dos participantes do clone dos dados recebidos
+            $participants = $dataClone['participantes'];
+            //verifica se a participantes
+            if ($participants) {
+                try {
+                    //adiciona  os participantes participantes
+                    $dataParticipants = $this->addParticipants($participants, $projectId);
+                    $this->repository->addRangeParticipants($dataParticipants);
+                } catch (\Exception $message) {
+                    return response()->json(['message' => $message->getMessage()], $message->getCode());
+                }
+            }
             //cria um array para inserir o link
             $link = [
                 'link' => $data['link'],
-                'idprojeto' => $idprojeto
+                'idprojeto' =>$projectId
             ];
             //verifica se a ação feita não deu erro
             CustomException::actionException($this->repository->linkGit($link)); 
@@ -166,7 +188,29 @@ class ProjectController extends Controller
             return response()->json(['message' => $e->getMessage()], 403); 
         }
     }
-
+    private function addParticipants($participants, $projectId)  {
+        //decodifica os dados enviados
+        $participants = json_decode($participants);
+        //verifica os dados no array
+        foreach ($participants as $key => $value) {
+            //faz o select dos nickname dos participantes
+            $nickname = $this->users->getByNickname($value);
+            //verifica se exite o nickname
+            if (!$nickname)
+            {
+                throw new HttpException(404, "Usúario Não Encontrado");
+            };
+            //pega o id do usuario 
+            $iduser = $nickname[0]['idusuario'];
+            //prepara o array para fazer o insert no banco
+            $data[] = [
+                'idusuario' => $iduser,
+                'idprojeto' => $projectId,
+                'tipo' => 'leitor'
+            ];
+        }
+        return $data;
+    }
     public function challengeVinculation(Request $request) {
         //pega os dados recebido
         $data = $request->all();
