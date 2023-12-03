@@ -7,24 +7,30 @@ use App\Models\User;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\V1\UserResource;
+use Log;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-
     public function __construct(
         protected User $repository,
-    ) 
-    {
+    ) {
         $this->middleware('auth:sanctum')->only(['update', 'destroy']);
     }
 
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = $this->repository->paginate();
+        $searchQuery = $request->query('user');
+        $searchQueryLimit = $request->query('limit') ?: 7;
+        if (!empty($searchQuery)) {
+            $users = $this->repository->where('apelido', 'LIKE', '%' . $searchQuery . '%')->limit($searchQueryLimit)->get();
+            return UserResource::collection($users);
+        }
+        $users = $this->repository->paginate($searchQueryLimit);
         return UserResource::collection($users);
     }
 
@@ -35,7 +41,7 @@ class UserController extends Controller
     {
         $data = $request->validated();
         $data['senha'] = bcrypt($request->senha);
-        
+
         $this->repository->createUser($data);
     }
 
@@ -43,7 +49,7 @@ class UserController extends Controller
      * Display the specified resource.
      */
     public function show(string $apelido)
-    { 
+    {
         $user = $this->repository->findOrFail($apelido);
         return new UserResource($user);
     }
@@ -51,20 +57,21 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateUserRequest $request, string $id)
+    public function update(UpdateUserRequest $request, string $username)
     {
-        $user = $this->repository->findOrFail($id);
-        $data = $request->validated();
-        if ($user->status != 'ativo') throw new NotFoundHttpException;
-        if ($request->senha)
-        {
-            $data['senha'] = \bcrypt($request->password);
+        $actualUser = $this->repository->getByNickname($username);
+        if (empty($actualUser)) {
+            return response()->json(['message' => 'Usuário não encontrado'], 404);
         }
-        if ($request->nome)
-        {
-            $this->repository->generateUsername($data['nome'], $user->idusuario);
+        if (Auth::guard('sanctum')->check() && Auth::guard('sanctum')->user()->idusuario == $actualUser->idusuario) {
+            $data = $request->validated();
+            if ($actualUser->status !== 'ativo') {
+                throw new NotFoundHttpException();
+            }
+            $tt = $this->repository->updateUser($data, $actualUser->idusuario);
+            return response()->json(['message' => 'Dados atualizados'], 200);
         }
-        $user->update($data);
+        return response()->json(['message' => 'Unauthorized'], 401);
     }
 
     /**
@@ -72,7 +79,15 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        var_dump(Auth::user()->nome);
-        // $update = $this->repository->desativateUser($id);
+        $id = $user->id;
+        $delete = $this->repository->desativateUser($id);
+    }
+    public function vericationStatus(string $apelido)
+    {
+        $get = $this->repository->getByNickname($apelido);
+        if($get[0]['status'] == 'Inativo') {
+            return false;
+        }
+        return true;
     }
 }

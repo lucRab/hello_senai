@@ -22,9 +22,20 @@ class StoreProjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nome_projeto' => 'required|min:3|max:80',
+            'nomeProjeto' => 'required|min:3|max:80',
             'descricao' => 'required',
-            'status' => 'required'
+            'status' => 'required',
+            'link' => 'required|regex:/github.com/',
+            'imagem' => 'required|image|max:1024',
+            'participantes' => 'nullable',
+            'desafio' => 'nullable'
         ];
+    }
+
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'nome_projeto' => $this->nomeProjeto
+        ]);
     }
 }
