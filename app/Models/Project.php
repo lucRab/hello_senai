@@ -37,6 +37,18 @@ class Project extends Model
         return $this->belongsTo(User::class, 'idusuario');
     }
 
+    public function participants()
+    {
+        return $this->hasManyThrough(
+            User::class,
+            Permission::class,
+            'idprojeto', // Foreign key on permissions table...
+            'idusuario', // Foreign key on users table...
+            'idprojeto', // Local key on projects table...
+            'idusuario'  // Local key on permissions table...
+        );
+    }
+
     /**
      * Método para criar projeto
      * @param [array] $data
@@ -60,7 +72,7 @@ class Project extends Model
             return true;
         };
         Log::error(self::class. "Error Update", ['dados: ' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
-        return false;
+        throw new \Exception('dsadsds');
     }
     /**
      * Método para deletar o projeto

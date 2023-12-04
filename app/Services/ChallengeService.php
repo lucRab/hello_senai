@@ -8,9 +8,10 @@ class ChallengeService implements ISlugService
 {
     public function generateSlug($name)
     {
-      $slug = DB::select("SELECT createUniqueSlug(?, ?) AS slug", [$name, 'convite'])[0]->slug;
+      $slug = DB::select("SELECT createUniqueSlug(?, ?) AS slug", [$name, 'desafio'])[0]->slug;
       return $slug;
     }
+    
     public function getBySlug($slug)
     {
       if ($data = Challenge::with('user')->where('slug', '=', $slug)->first())

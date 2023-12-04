@@ -11,6 +11,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\DB;
 use App\Models\Project;
 use App\Models\Invitation;
+use App\Models\Teacher;
 
 class User extends Authenticatable
 {
@@ -35,7 +36,7 @@ class User extends Authenticatable
     */
     public function project()
     {
-        return $this->hasMany(Project::class);
+        return $this->hasMany(Project::class, 'idusuario');
     }
     /**
      * Método para vincular o convite ao usuario
@@ -43,7 +44,7 @@ class User extends Authenticatable
      */
     public function invite()
     {
-        return $this->hasMany(Invitation::class);
+        return $this->hasMany(Invitation::class, 'idusuario');
     }
     /**
      * Método para vincular o desafio ao usuario
@@ -53,6 +54,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Challenge::class);
     }
+
+    public function teacher()
+    {
+        return $this->hasMany(Teacher::class, 'idusuario');
+    }
+
      /**
      * Função para criação do usuario;
      * @param $data - 

@@ -17,19 +17,7 @@ class ProjectService implements ISlugService
     
     public function getBySlug($slug)
     {
-        $data = Project::with('user')->where('slug', '=', $slug)->first();
-        if ($data) {
-          $user = new User();
-          $participants = $user
-          ->join('permissao', 'permissao.idusuario', '=', 'usuario.idusuario')
-          ->where('permissao.idprojeto', '=', $data->idprojeto)
-          ->get(['nome', 'apelido']);
-          if (!empty($participants)) {
-            $data->participantes = $participants;
-          }
-          return $data;
-        }
-        
-        return null;
+        $data = Project::with(['user', 'participants'])->where('slug', '=', $slug)->first();
+        return $data;
     }
 }

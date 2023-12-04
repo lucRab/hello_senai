@@ -11,6 +11,18 @@ use Log;
  */
 class Teacher extends User
 {
+    protected $table = "professor";
+
+    public function challenge()
+    {
+        return $this->hasMany(Challenge::class, 'idusuario');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'idusuario');
+    }
+
     public function createTeacher($data)
     {
         $idUser = parent::createUser($data);
