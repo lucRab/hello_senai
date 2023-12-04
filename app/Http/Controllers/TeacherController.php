@@ -7,6 +7,7 @@ use Auth;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreTeacherRequest;
 use App\Http\Requests\UpdateTeacherRequest;
+use App\Http\Resources\V1\TeacherResource;
 use App\Models\Teacher;
 
 class TeacherController extends Controller
@@ -22,15 +23,10 @@ class TeacherController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $teachers = $this->repository->with(['challenge' => function($query) {
+            $query->take(3);
+        }, 'user'])->paginate();
+        return TeacherResource::collection($teachers);
     }
 
     /**
@@ -56,14 +52,6 @@ class TeacherController extends Controller
      * Display the specified resource.
      */
     public function show(Teacher $teacher)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Teacher $teacher)
     {
         //
     }

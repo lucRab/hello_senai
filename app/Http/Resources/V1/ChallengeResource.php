@@ -16,15 +16,21 @@ class ChallengeResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $user = User::where('idusuario', '=', $this->idusuario)->first();
-        return [
+        $user = $this->whenLoaded('user');
+
+        $data = [
             'desafio' => [
                 'titulo' => $this->titulo, 
                 'descricao' => $this->descricao, 
-                'dataCriacao' => DateService::transformDateHumanReadable($this->data_convite), 
+                'dataCriacao' => DateService::transformDateHumanReadable($this->data_criacao), 
                 'slug' => $this->slug,
-               'autor' => ['nome' => $user->nome, 'apelido' => $user->apelido]
             ]
         ];
+
+        if ($this->relationLoaded('user')) {
+            $data['autor'] = ['nome' => $user->nome, 'apelido' => $user->apelido];
+        }
+        
+        return $data;
     }
 }

@@ -12,6 +12,7 @@ use Exception;
 use Illuminate\Http\Request;
 use App\Models\Invitation;
 use App\Services\InvitationService;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 
 class InvitationController extends Controller
@@ -62,26 +63,35 @@ class InvitationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateInvitationRequest $request, $slug) {
-        $invitation = $this->service->getBySlug($slug);
-        //Pega o usuario  logado
-        $user = Auth::guard('sanctum')->user();
-        
-        //VERIFICAR SE O USUÁRIO QUE POSTOU É O MESMO QUE ATUALIZARÁ
+    public function update(UpdateInvitationRequest $request, string $slug) {
         try {
-            //verifica se o usuario tem autorizão para realizar a ação
-            CustomException::authorizedActionException('invite-update', $user, $invitation);
-            //pega os dados validados
-            $data = $request->validated();
-            $data['idconvite'] = $invitation->idconvite;
+            $invitation = $this->service->getBySlug($slug);
 
-            if ($data['titulo'] != $invitation->titulo)
-            {
-                $data['slug'] = $this->service->generateSlug($data['titulo']);
+            if (!$invitation) {
+                throw new NotFoundHttpException('Convite não encontrado');
             }
-            //verifica se ação ocorreu bem
-            CustomException::actionException($this->repository->updateInvitation($data));       
-            return response()->json(['message' => 'Convite Atualizado'], 200);
+            
+            if (Auth::guard('sanctum')->check()) {
+                $user = Auth::guard('sanctum')->user();
+                if ($user->idusuario !== $invitation->idusuario) {
+                    return response()->json(['message' => 'Unauthorized'], 401);
+                }
+
+                $data = $request->validated();
+                //verifica se o usuario tem autorizão para realizar a ação
+                CustomException::authorizedActionException('invite-update', $user, $invitation);
+                //pega os dados validados
+                $data['idconvite'] = $invitation->idconvite;
+
+                if ($data['titulo'] !== $invitation->titulo)
+                {
+                    $data['slug'] = $this->service->generateSlug($data['titulo']);
+                }
+                //verifica se ação ocorreu bem
+                CustomException::actionException($this->repository->updateInvitation($data));       
+                return response()->json(['message' => 'Convite Atualizado'], 200);
+            }
+            return response()->json(['message' => 'Unauthorized'], 401);
         }catch (Exception $e) {
             return response()->json(['message' => $e->getMessage()], 403); 
         }

@@ -22,10 +22,20 @@ class UpdateProjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nome_projeto' => 'nullable|min:3|max:80',
-            'descricao' => 'nullable|min:3',
-            'status' => 'nullable',
-            'imagem' => 'nullable|image|max:1024',
+            'nomeProjeto' => 'required|min:3|max:80',
+            'descricao' => 'required',
+            'status' => 'required',
+            'link' => 'nullable|regex:/github.com/',
+            'imagem' => 'nullable',
+            'participantes' => 'nullable',
+            'desafio' => 'nullable'
         ];
+    }
+
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'nome_projeto' => $this->nomeProjeto
+        ]);
     }
 }

@@ -4,19 +4,24 @@ namespace App\Http\Controllers;
 
 use Auth;
 use App\Models\User;
+use App\Models\Project;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\V1\UserResource;
+use App\Http\Resources\V1\ProjectResource;
+use App\Http\Resources\V1\InvitationResource;
 use Log;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+    private $project;
     public function __construct(
         protected User $repository,
     ) {
         $this->middleware('auth:sanctum')->only(['update', 'destroy']);
+        $this->project = new Project();
     }
 
     /**
@@ -82,6 +87,7 @@ class UserController extends Controller
         $id = $user->id;
         $delete = $this->repository->desativateUser($id);
     }
+
     public function vericationStatus(string $apelido)
     {
         $get = $this->repository->getByNickname($apelido);
@@ -89,5 +95,25 @@ class UserController extends Controller
             return false;
         }
         return true;
+    }
+
+    public function getProjects($username)
+    {   
+        $user = User::where('apelido', $username)->first();
+        if (!$user) {
+            return response()->json(['message' => 'Usuário não encontrado'], 404);
+        }
+        $projects = $user->project()->with(['participants', 'user'])->paginate();
+        return ProjectResource::collection($projects);
+    }
+
+    public function getInvites($username)
+    {   
+        $user = User::where('apelido', $username)->first();
+        if (!$user) {
+            return response()->json(['message' => 'Usuário não encontrado'], 404);
+        }
+        $invites = $user->invite()->with('user')->paginate();
+        return InvitationResource::collection($invites);
     }
 }

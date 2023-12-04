@@ -17,15 +17,33 @@ class ProjectResource extends JsonResource
     public function toArray(Request $request): array
     {
         $author = $this->whenLoaded('user');
-        return [
+        $participants = $this->whenLoaded('participants');
+
+        $data = [
             'nomeProjeto' => $this->nome_projeto,
             'descricao' => $this->descricao,
             'dataCriacao' => DateService::transformDateHumanReadable($this->data_projeto),
             'status' => $this->status,
             'slug' => $this->slug,
             'imagem' => Storage::url($this->imagem),
-            'autor' => ['nome' => $author->nome, 'apelido' => $author->apelido],
-            'participantes' => $this->participantes ?: []
+            'autor' => ['nome' => $author->nome, 'apelido' => $author->apelido]
         ];
+
+        if ($this->relationLoaded('participants')) {
+            $data['participantes'] = $this->participants ? $this->filterParticipantData($this->participants) : [];
+        }
+
+        return $data;
+    }
+
+    public function filterParticipantData($arr)
+    {
+        $filterData = $arr->map(function ($participant) {
+            return [
+                'nome' => $participant->nome,
+                'apelido' => $participant->apelido,
+            ];
+        });
+        return $filterData;
     }
 }
