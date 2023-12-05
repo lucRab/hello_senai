@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CustomException;
 use Auth;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreTeacherRequest;
 use App\Http\Requests\UpdateTeacherRequest;
+use App\Http\Resources\V1\TeacherResource;
 use App\Models\Teacher;
 
 class TeacherController extends Controller
@@ -21,48 +23,35 @@ class TeacherController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $teachers = $this->repository->with(['challenge' => function($query) {
+            $query->take(3);
+        }, 'user'])->paginate();
+        return TeacherResource::collection($teachers);
     }
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(StoreTeacherRequest $request)
-    {
-        if (Auth::guard('sanctum')->check() && Auth::guard('sanctum')->user()->tokenCan('teacher-store'))
-        {
+    {   
+        try {
+            $user = Auth::guard('sanctum')->user();
+            CustomException::authorizedActionException( 'teacher-store', $user);
+            
             $data = $request->validated();
             $data['senha'] = bcrypt($request->senha);
-            if (!$this->repository->createTeacher($data))
-            {
-                return response()->json(['message' => 'Não Foi Possivel Realizar Essa Ação', 403]);
-            };
+            CustomException::actionException($this->repository->createTeacher($data));
+
             return response()->json(['message' => 'Professor Criado Com Sucesso', 200]);
-        }
- 
-        return response()->json(['message' => 'Unauthorized', 401]);
+        }catch (\Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 403); 
+        } 
     }
 
     /**
      * Display the specified resource.
      */
     public function show(Teacher $teacher)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Teacher $teacher)
     {
         //
     }

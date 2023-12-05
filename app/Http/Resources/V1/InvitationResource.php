@@ -4,6 +4,7 @@ namespace App\Http\Resources\V1;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Services\DateService;
 
 class InvitationResource extends JsonResource
 {
@@ -18,7 +19,7 @@ class InvitationResource extends JsonResource
         return [
             'titulo' => $this->titulo,
             'descricao' => $this->descricao,
-            'dataCriacao' => $this->data_convite,
+            'dataCriacao' => DateService::transformDateHumanReadable($this->data_convite),
             'slug' => $this->slug,
             'autor' => ['nome' => $author->nome, 'apelido' => $author->apelido]
         ];

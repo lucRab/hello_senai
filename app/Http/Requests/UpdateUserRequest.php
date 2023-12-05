@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Auth;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,29 +23,23 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
+        $user = Auth::guard('sanctum')->user();
         $rules = [
             'nome' => 'required|min:5|max:45',
             'email' => [
                 'required',
                 'email',
                 'max:255',
-                'unique:usuario',
-                'regex:/ba.estudante.senai\.br/'
+                'regex:/ba.estudante.senai\.br/',
+                Rule::unique('usuario')->ignore($user->idusuario, 'idusuario')
             ],
-            'senha' => 'required|min:6|max:255'
-        ];
-
-        if ($this->method() === 'PUT')
-        {
-            $rules['senha'] = 'nullable|min:6|max:100';
-            $rules['email'] = [
+            'apelido' => [
                 'required',
-                'email',
+                'min:6',
                 'max:255',
-                Rule::unique('usuario')->ignore($this->id)
-            ];
-        }
-        
+                Rule::unique('usuario')->ignore($user->idusuario, 'idusuario')
+            ]
+        ];
         return $rules;
     }
 }
