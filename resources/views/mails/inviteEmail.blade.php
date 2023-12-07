@@ -64,7 +64,15 @@
 										<p>
 											Se você tiver alguma dúvida ou precisar de suporte adicional, não hesite em entrar em contato conosco por meio do suporte da plataforma.
 										</p>
-										<button style="color:#ffffff;direction:ltr;font-family:Roboto, Tahoma, Verdana, Segoe, sans-serif;background-color:#276ecd;border-radius: 4px;border: none;width: 120px;height: 40px;">Aceitar convite</button>
+										<form action="http://127.0.0.1:8000/api/email/{{$data['message']['id']}}">
+											<button style="color:#ffffff;
+													direction:ltr;
+													font-family:Roboto, Tahoma, Verdana, Segoe, sans-serif;
+													background-color:#276ecd;border-radius: 4px;border: none;width: 120px;height: 40px;"ss>
+											Aceitar convite
+											</button>
+										</form>
+										
 										<p>
 											Agradecemos pela utilização da nossa plataforma e desejamos muito sucesso no desenvolvimento do seu projeto.
 										</p>

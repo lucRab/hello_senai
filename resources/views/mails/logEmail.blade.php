@@ -11,28 +11,32 @@
 		<table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; color: #000; width: 670.00px; margin: 0 auto;" width="670.00">
 			<tbody>
 				<tr>
-					<td class="column column-1" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; border-top: 0px; border-right: 0px; border-bottom: 0px; border-left: 0px;" width="100%">
-						<table border="0" cellpadding="10" cellspacing="0" class="heading_block block-1" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;" width="100%">
+					<td style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; border-top: 0px; border-right: 0px; border-bottom: 0px; border-left: 0px;" width="100%">
+						<table border="0" cellpadding="10" cellspacing="0" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;" width="100%">
 							<tr>
 								<td class="pad">
-									<h1 style="margin: 0; color: #276ecd; direction: ltr; font-family: Roboto, Tahoma, Verdana, Segoe, sans-serif; font-size: 38px; font-weight: 700; letter-spacing: normal; line-height: 120%; text-align: left; margin-top: 0; margin-bottom: 0;"><span class="tinyMce-placeholder">Hello Senai</span></h1>
+									<h1 style="margin: 0; color: #276ecd; direction: ltr; font-family: Roboto, Tahoma, Verdana, Segoe, sans-serif; font-size: 38px; font-weight: 700; letter-spacing: normal; line-height: 120%; text-align: left; margin-top: 0; margin-bottom: 0;">
+										Hello Senai
+									</h1>
 								</td>
 							</tr>
 						</table>
-					<div class="spacer_block block-2" style="height:20px;line-height:20px;font-size:1px;"> </div>
+					<div style="height:20px;line-height:20px;font-size:1px;"> </div>
 					</td>
 				</tr>
 			</tbody>
 		</table>
-		<table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; color: #000; width: 670.00px; margin: 0 auto;" width="670.00">
+		<table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; color: #000; width: 670.00px; margin: 0 auto;" width="670.00">
 			<tbody>
 				<tr>
-					<td class="column column-1" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; border-top: 0px; border-right: 0px; border-bottom: 0px; border-left: 0px;" width="100%">
-						<div class="spacer_block block-1" style="height:30px;line-height:30px;font-size:1px;"> </div>
-						<table border="0" cellpadding="10" cellspacing="0" class="heading_block block-2" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;" width="100%">
+					<td style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; border-top: 0px; border-right: 0px; border-bottom: 0px; border-left: 0px;" width="100%">
+						<div style="height:30px;line-height:30px;font-size:1px;"> </div>
+						<table border="0" cellpadding="10" cellspacing="0" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;" width="100%">
 							<tr>
 								<td class="pad">
-								<h2 style="margin: 0; color: #000000; direction: ltr; font-family: Roboto, Tahoma, Verdana, Segoe, sans-serif; font-size: 30px; font-weight: 700; letter-spacing: normal; line-height: 120%; text-align: left; margin-top: 0; margin-bottom: 0;"><span class="tinyMce-placeholder">Olá Administrador!</span></h2>
+									<h2 style="margin: 0; color: #000000; direction: ltr; font-family: Roboto, Tahoma, Verdana, Segoe, sans-serif; font-size: 30px; font-weight: 700; letter-spacing: normal; line-height: 120%; text-align: left; margin-top: 0; margin-bottom: 0;">
+										Olá Administrador!
+									</h2>
 								</td>
 							</tr>
 						</table>
@@ -40,16 +44,16 @@
 				</tr>
 			</tbody>
 		</table>
-		<table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; color: #000; width: 670.00px; margin: 0 auto;" width="670.00">
+		<table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; color: #000; width: 670.00px; margin: 0 auto;" width="670.00">
 			<tbody>
 				<tr>
-					<td class="column column-1" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; padding-bottom: 5px; padding-top: 5px; vertical-align: top; border-top: 0px; border-right: 0px; border-bottom: 0px; border-left: 0px;" width="100%">
-						<table border="0" cellpadding="10" cellspacing="0" class="paragraph_block block-1" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; word-break: break-word;" width="100%">
+					<td style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; padding-bottom: 5px; padding-top: 5px; vertical-align: top; border-top: 0px; border-right: 0px; border-bottom: 0px; border-left: 0px;" width="100%">
+						<table border="0" cellpadding="10" cellspacing="0" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; word-break: break-word;" width="100%">
 							<tr>
 								<td class="pad">
 									<div style="color:#101112;direction:ltr;font-family:Roboto, Tahoma, Verdana, Segoe, sans-serif;font-size:21px;font-weight:400;letter-spacing:0px;line-height:120%;text-align:left;mso-line-height-alt:25.2px;">
-										<p style="margin: 0; margin-bottom: 16px;">Um erro foi encontrado na plataforma Hello Senai!!</p>
-										<p>{{$data['message']}}</p>
+										<p style="margin: 0; margin-bottom: 16px;">Um erro foi encontrado na plataforma Hello Senai!! {{$data['message']['mail']}}</p>
+										<p>{{$data['message']['message']}}</p>
 										<p style="margin: 0;"> </p>
 									</div>
 								</td>
