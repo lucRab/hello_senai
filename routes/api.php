@@ -45,3 +45,4 @@ Route::group(['prefix' => 'auth'], function () {
 });
 
 Route::post('/teste/{convite}', [InvitationController::class,'aceitarInvite']);
+Route::get('/email/{email}', [InvitationController::class,'emailAceito']);

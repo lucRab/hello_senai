@@ -83,16 +83,9 @@ class Challenge extends Model
                                                      'idprofessor' => $idprofessor, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
             return false;
         }
-
-        $this->deleteInvitation($idconvite);
         return true;
     }
 
-    public function createInvitation(array $data)
-    {
-        $id = DB::table('convite')->insertGetId($data);
-        return $id;
-    }
 
     public function getbySlug($slug)
     {
@@ -101,13 +94,5 @@ class Challenge extends Model
         ->where('c.slug', '=', $slug)->get('d.iddesafio')->first();
         return $get;
     }
-
-    public function deleteInvitation(string $idInvitation)
-    {
-        if (DB::table('convite')->where('idconvite', '=', $idInvitation)->delete()) {
-            return true;
-        };
-        Log::error(self::class . "Error Delete", ['idComentario: ' => $idInvitation, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
-        return false;
-    }
+   
 }

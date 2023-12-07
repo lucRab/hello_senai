@@ -12,7 +12,6 @@ use Exception;
 use Illuminate\Http\Request;
 use App\Models\Invitation;
 use App\Services\InvitationService;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 
 class InvitationController extends Controller
@@ -43,7 +42,7 @@ class InvitationController extends Controller
         $user = Auth::guard('sanctum')->user();
         try {
             //verifica se o usuario tem autorizão para realizar a ação
-            CustomException::authorizedActionException('invite-store', $user);
+            CustomException::authorizedActionException('invite-store', $user, "InvitationController::store");
             //pega os dados validados
             $data = $request->validated();
             $userId = $user->idusuario;
@@ -63,35 +62,26 @@ class InvitationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateInvitationRequest $request, string $slug) {
+    public function update(UpdateInvitationRequest $request, $slug) {
+        $invitation = $this->service->getBySlug($slug);
+        //Pega o usuario  logado
+        $user = Auth::guard('sanctum')->user();
+        
+        //VERIFICAR SE O USUÁRIO QUE POSTOU É O MESMO QUE ATUALIZARÁ
         try {
-            $invitation = $this->service->getBySlug($slug);
+            //verifica se o usuario tem autorizão para realizar a ação
+            CustomException::authorizedActionException('invite-update', $user, $invitation);
+            //pega os dados validados
+            $data = $request->validated();
+            $data['idconvite'] = $invitation->idconvite;
 
-            if (!$invitation) {
-                throw new NotFoundHttpException('Convite não encontrado');
+            if ($data['titulo'] != $invitation->titulo)
+            {
+                $data['slug'] = $this->service->generateSlug($data['titulo']);
             }
-            
-            if (Auth::guard('sanctum')->check()) {
-                $user = Auth::guard('sanctum')->user();
-                if ($user->idusuario !== $invitation->idusuario) {
-                    return response()->json(['message' => 'Unauthorized'], 401);
-                }
-
-                $data = $request->validated();
-                //verifica se o usuario tem autorizão para realizar a ação
-                CustomException::authorizedActionException('invite-update', $user, $invitation);
-                //pega os dados validados
-                $data['idconvite'] = $invitation->idconvite;
-
-                if ($data['titulo'] !== $invitation->titulo)
-                {
-                    $data['slug'] = $this->service->generateSlug($data['titulo']);
-                }
-                //verifica se ação ocorreu bem
-                CustomException::actionException($this->repository->updateInvitation($data));       
-                return response()->json(['message' => 'Convite Atualizado'], 200);
-            }
-            return response()->json(['message' => 'Unauthorized'], 401);
+            //verifica se ação ocorreu bem
+            CustomException::actionException($this->repository->updateInvitation($data));       
+            return response()->json(['message' => 'Convite Atualizado'], 200);
         }catch (Exception $e) {
             return response()->json(['message' => $e->getMessage()], 403); 
         }
@@ -140,11 +130,30 @@ class InvitationController extends Controller
                'status'    => false,
             ];
             //Salvando registro do email
-            CustomException::actionException($this->repository->registerEmail($data));
+            $id = $this->repository->registerEmail($data);
             //Enviando Email para o usuario que criou o convite
-            Mails::sendInvite($message, $inviteUser[0]->nome, $inviteUser[0]->email);
+            Mails::sendInvite($message, $inviteUser[0]->nome, $inviteUser[0]->email, $user['email'], $user['nome'], $id);
         }catch(Exception $e) {
             return response()->json(['message' => $e->getMessage()], 403);
         }
+    }
+    /**
+     * Método para usuario aceita o usuario do convite
+     *
+     * @param [type] $idemail
+     * @return 'view'
+     */
+    public function emailAceito($idemail) {
+        //deifine o status do email como true
+       $data = ['status' => true];
+        try {
+            //verifica se ação ocorreu bem
+            CustomException::actionException($this->repository->updateEmail($data, $idemail));
+            //retorna uma view para o usuario
+            return view('mails');
+        }catch(Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 403);
+        }
+
     }
 }
