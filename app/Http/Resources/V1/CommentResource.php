@@ -4,6 +4,8 @@ namespace App\Http\Resources\V1;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Services\DateService;
+use App\Models\User;
 
 class CommentResource extends JsonResource
 {
@@ -14,8 +16,15 @@ class CommentResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $user = $this->whenLoaded('user');
+        $reply = $this->whenLoaded('reply');
+
         return [
+            'idcomentario' => $this->idcomentario,
+            'usuario' => ['nome' => $user->nome, 'apelido' => $user->apelido],
             'texto' => $this->texto,
+            'criadoEm' => DateService::transformDateHumanReadable($this->criado_em),
+            'resposta' => $reply ? new CommentResource($reply) : null
         ];
     }
 }

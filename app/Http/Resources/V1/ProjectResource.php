@@ -18,6 +18,7 @@ class ProjectResource extends JsonResource
     {
         $author = $this->whenLoaded('user');
         $participants = $this->whenLoaded('participants');
+        $comments = $this->whenLoaded('comments');
 
         $data = [
             'nomeProjeto' => $this->nome_projeto,
@@ -26,7 +27,8 @@ class ProjectResource extends JsonResource
             'status' => $this->status,
             'slug' => $this->slug,
             'imagem' => Storage::url($this->imagem),
-            'autor' => ['nome' => $author->nome, 'apelido' => $author->apelido]
+            'autor' => ['nome' => $author->nome, 'apelido' => $author->apelido],
+            'comentarios' => CommentResource::collection($comments) ?: []
         ];
 
         if ($this->relationLoaded('participants')) {

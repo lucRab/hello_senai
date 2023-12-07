@@ -8,16 +8,20 @@ use App\Services\CustomException;
 use Auth;
 use App\Models\Project;
 use App\Models\Challenge;
+use App\Models\Comment;
 use App\Services\ProjectService;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
+use App\Http\Requests\StoreCommentRequest;
 use App\Http\Resources\V1\ProjectResource;
+use App\Http\Resources\V1\CommentResource;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class ProjectController extends Controller
 {
@@ -43,7 +47,7 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        $projects = $this->repository->with('user')->paginate();
+        $projects = $this->repository->with(['user', 'comments.user', 'comments.reply.user'])->paginate();
         return ProjectResource::collection($projects);
     }
 
@@ -201,6 +205,43 @@ class ProjectController extends Controller
         return $dataProject;
     }
 
+    public function comment(StoreCommentRequest $request, $slug) {
+        if (Auth::guard('sanctum')->check()) {
+            $userId = Auth::guard('sanctum')->user()->idusuario;
+            $data = $request->validated();
+            $project = $this->service->getBySlug($slug);
+            if (!$project) {
+                return response()->json(['message' => 'Projeto não encontrado'], 404);
+            }
+            $commentData = [
+                'idusuario' => $userId,
+                'idprojeto' => $project->idprojeto,
+                'texto' => $data['texto'],
+                'criado_em' => Carbon::now(new \DateTimeZone('America/Sao_Paulo'))
+            ];
+
+            if (empty($data['comentarioPai'])) {
+                $comment = new Comment($commentData);
+                $comment->save();
+            } else {
+                $parentComment = Comment::find($data['comentarioPai']);
+                if (!$parentComment) {
+                    return response()->json(['message' => 'Comentário não encontrado'], 404);
+                }
+                $comment = new Comment($commentData);
+                $comment->save();
+                $updatedComment = $parentComment->update(['idresposta' => $comment->idcomentario]);
+                if (!$updatedComment) {
+                    return response()->json(['message' => 'Não foi possivel realizar o comentário'], 403);
+                }
+                $commentData['comentarioPai'] = $data['comentarioPai'];
+            }
+
+            return response()->json(['data' => $commentData], 200);
+        }         
+        return response()->json(['message' => 'Autorização negada'], 401);
+    }
+
     public function denunciationProject(DenuciaProjectRequest $request) {
         //valida os dados recebidos
         $data = $request->validated();
@@ -211,6 +252,7 @@ class ProjectController extends Controller
             return response()->json(['message' => $e->getMessage()], 403); 
         }
     }
+
     private function addParticipants($participants, $projectId)  {
         //decodifica os dados enviados
         $participants = json_decode($participants);

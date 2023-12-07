@@ -4,21 +4,41 @@ namespace App\Models;
 
 use Auth;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens; 
 use Illuminate\Database\Eloquent\Model;
 use Log;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class Comment extends Model
 {
+    use HasApiTokens, HasFactory, Notifiable;
+
     protected $table = "comentario";
     protected $primaryKey = "idcomentario";
     protected $fillable = [
         'idprojeto',
         'texto',
         'idresposta',
-        'idusuario'
+        'idusuario',
+        'criado_em'
     ];
 
-    public $timestamps = false;
+    const CREATED_AT = 'criado_em';
+    const UPDATED_AT = null;
+
+    public function project() {
+        return $this->belongsTo(Project::class, 'idprojeto');
+    }
+
+    public function user() {
+        return $this->belongsTo(User::class, 'idusuario');
+    }
+
+    public function reply() {
+        return $this->belongsTo(Comment::class, 'idresposta');
+    }
+
     /**
      * Método para criar o comentario
      *
@@ -30,7 +50,6 @@ class Comment extends Model
             return true;
         }
         Log::error(self::class. "Error Create", ['dados: ' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
-        return false;
     }
     /**
      * Método para atualizar o comentario
@@ -67,7 +86,4 @@ class Comment extends Model
     // public function reposta() {
     //     return $this->belongsTo(Comment::class,'idcomentario');
     // }
-
-
-    use HasFactory;
 }

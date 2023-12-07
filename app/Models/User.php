@@ -60,6 +60,10 @@ class User extends Authenticatable
         return $this->hasMany(Teacher::class, 'idusuario');
     }
 
+    public function comments() {
+        return $this->hasMany(Comment::class, 'idusuario');
+    }
+
      /**
      * Função para criação do usuario;
      * @param $data - 

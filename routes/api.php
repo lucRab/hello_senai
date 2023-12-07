@@ -25,8 +25,12 @@ Route::group(['prefix' => 'v1'], function () {
     Route::apiResource('professor', TeacherController::class);
 
     Route::apiResource('projeto', ProjectController::class);
+    
+    Route::post('projeto/{slug}/comentario', [ProjectController::class, 'comment']);
+    
     Route::post('projeto/denucia',[ProjectController::class,'denunciationProject'])->name('projeto.denucia');
     Route::post('projeto/desafio',[ProjectController::class,'challengeVinculation'])->name('projeto.desafio');
+
     Route::post('projeto/desafio/desvincular',[ProjectController::class,'challengeDesvinculation'])->name('projeto.desvicular'); 
     
     Route::apiResource('convite', InvitationController::class);    

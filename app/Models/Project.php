@@ -29,6 +29,10 @@ class Project extends Model
     const UPDATED_AT = "data_atualizado";
     public Comment $comentario;
 
+    public function __construct() {
+        $this->comentario = new Comment();
+    }
+
     /**
      * Método para realizar relacionamento com o usuario
      * @return object $data
@@ -47,6 +51,11 @@ class Project extends Model
             'idprojeto', // Local key on projects table...
             'idusuario'  // Local key on permissions table...
         );
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class, 'idprojeto');
     }
 
     /**
