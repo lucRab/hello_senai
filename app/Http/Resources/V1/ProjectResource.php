@@ -26,6 +26,7 @@ class ProjectResource extends JsonResource
             'dataCriacao' => DateService::transformDateHumanReadable($this->data_projeto),
             'status' => $this->status,
             'slug' => $this->slug,
+            'status' => ucfirst($this->status),
             'imagem' => Storage::url($this->imagem),
             'autor' => ['nome' => $author->nome, 'apelido' => $author->apelido],
             'comentarios' => CommentResource::collection($comments) ?: []

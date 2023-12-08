@@ -36,7 +36,7 @@ class TeacherController extends Controller
     {   
         try {
             $user = Auth::guard('sanctum')->user();
-            CustomException::authorizedActionException( 'teacher-store', $user);
+            CustomException::authorizedActionException('teacher-store', $user);
             
             $data = $request->validated();
             $data['senha'] = bcrypt($request->senha);
