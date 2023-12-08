@@ -28,6 +28,11 @@ class Challenge extends Model
     {
         return $this->belongsTo(User::class, 'idusuario');
     }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class, 'iddesafio', 'iddesafio');
+    }
     /**
      * Método de criação de desafio
      *

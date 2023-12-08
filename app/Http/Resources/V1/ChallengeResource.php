@@ -17,6 +17,7 @@ class ChallengeResource extends JsonResource
     public function toArray(Request $request): array
     {
         $user = $this->whenLoaded('user');
+        $project = $this->whenLoaded('project');
 
         $data = [
             'desafio' => [
@@ -29,6 +30,10 @@ class ChallengeResource extends JsonResource
 
         if ($this->relationLoaded('user')) {
             $data['autor'] = ['nome' => $user->nome, 'apelido' => $user->apelido];
+        }
+
+        if ($this->relationLoaded('project')) {
+            $data['projeto'] = ['slug' => $project->slug];
         }
         
         return $data;

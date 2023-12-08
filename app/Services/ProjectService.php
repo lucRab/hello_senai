@@ -20,4 +20,10 @@ class ProjectService implements ISlugService
         $data = Project::with(['user', 'participants', 'comments.user', 'comments.reply.user'])->where('slug', '=', $slug)->first();
         return $data;
     }
+
+    public function isProjectStored($slug)
+    {
+        $project = Project::where('slug', '=', $slug)->first();
+        return $project;
+    }
 }

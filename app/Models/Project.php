@@ -58,6 +58,16 @@ class Project extends Model
         return $this->hasMany(Comment::class, 'idprojeto');
     }
 
+    public function challenge()
+    {
+        return $this->hasOne(Challenge::class, 'iddesafio', 'iddesafio');
+    }
+
+    public function denounces()
+    {
+        return $this->hasMany(Denounce::class, 'idprojeto', 'idprojeto');
+    }
+
     /**
      * Método para criar projeto
      * @param [array] $data
@@ -120,8 +130,8 @@ class Project extends Model
      * @param [array] $data
      * @return bool
      */
-    public function denunciaProjeto($data) {
-        if(DB::table('denuncia')->insert($data)) return  true;
+    public function reportProject($data) {
+        if(DB::table('denuncia')->insert($data)) return true;
         Log::error(self::class. "Error Denuncia", ['Dados: ' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false;
     }

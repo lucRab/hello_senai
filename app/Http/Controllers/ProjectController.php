@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\DenuciaProjectRequest;
+use App\Http\Requests\StoreReportProject;
 use App\Models\User;
 use App\Services\CustomException;
 use Auth;
@@ -35,8 +35,7 @@ class ProjectController extends Controller
      */
     public function __construct(
         protected Project $repository
-    )
-    {
+    ) {
         $this->service = new ProjectService();
         $this->users = new User();
         $this->challenge = new Challenge();
@@ -67,19 +66,19 @@ class ProjectController extends Controller
             //clona os dados recebidos
             $dataClone = $data;
             //retira os dados dos participantes para fazer o insert no banco
-            if (!empty($data['participantes'])) unset($data['participantes']);    
+            if (!empty($data['participantes'])) {
+                unset($data['participantes']);
+            }
             //cria um apelido
             $slug = $this->service->generateSlug($data['nomeProjeto']);
             $data['slug'] = $slug;
-            //trata os dados 
+            //trata os dados
             $project = $this->processingData($data, $slug);
             $project['idusuario'] = $user->idusuario;
 
-            if (!empty($data['desafio']))
-            {
+            if (!empty($data['desafio'])) {
                 $challenge = $this->challenge->getBySlug($data['desafio']);
-                if (!$challenge)
-                {
+                if (!$challenge) {
                     return response()->json(['message' => 'Desafio não encontrado'], 404);
                 }
                 $project['iddesafio'] = $challenge->iddesafio;
@@ -102,23 +101,23 @@ class ProjectController extends Controller
             //cria um array para inserir o link
             $link = [
                 'link' => $data['link'],
-                'idprojeto' =>$projectId
+                'idprojeto' => $projectId
             ];
             //verifica se a ação feita não deu erro
-            CustomException::actionException($this->repository->linkGit($link)); 
-            return response()->json(['message' => 'Projeto Criado'], 200); 
-        }catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 403); 
-        } 
+            CustomException::actionException($this->repository->linkGit($link));
+            return response()->json(['message' => 'Projeto Criado'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 403);
+        }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show($slug) {
+    public function show($slug)
+    {
         $data = $this->service->getBySlug($slug);
-        if (!$data)
-        {
+        if (!$data) {
             return response()->json(['message' => 'Projeto Não Encontrado'], 404);
         }
         return new ProjectResource($data);
@@ -127,24 +126,24 @@ class ProjectController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateProjectRequest $request, string $slug) {
-        try {     
+    public function update(UpdateProjectRequest $request, string $slug)
+    {
+        try {
             $user = Auth::guard('sanctum')->user();
             //pega o usuario logado
             //pega o apelido do projeto
             $project = $this->service->getBySlug($slug);
 
             if (empty($project)) {
-                throw new NotFoundHttpException;
+                throw new NotFoundHttpException();
             }
-        
+
             //VERIFICAR SE O USUÁRIO QUE POSTOU É O MESMO QUE ATUALIZARÁ
             CustomException::authorizedActionException('project-update', $user, $project);
             $data = $request->validated();
             $data['idprojeto'] = $project->idprojeto;
-            
-            if ($data['nomeProjeto'] !== $project->nome_projeto)
-            {
+
+            if ($data['nomeProjeto'] !== $project->nome_projeto) {
                 $data['slug'] = $this->service->generateSlug($data['nomeProjeto']);
             }
 
@@ -154,36 +153,38 @@ class ProjectController extends Controller
             // if ($request->participantes) {
             //     $participantsNotInNewRequest = $this->updateParticipants($project->participants, $request->participantes);
             // }
-            
+
             CustomException::actionException($this->repository->updateProject($dataUpdated));
             return response()->json(['message' => 'Projeto Atualizado'], 200);
-        }catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 403); 
-        }       
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 403);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($slug) {
+    public function destroy($slug)
+    {
         //pega o usuario logado
         $user = Auth::guard('sanctum')->user();
         //pega o apelido do projeto
         $project = $this->service->getBySlug($slug);
-        try{
+        try {
             //VERIFICAR SE O USUÁRIO QUE POSTOU É O MESMO QUE DELETARA
             CustomException::authorizedActionException('project-update', $user, $project);
             //verifica se a ação feita não deu erro
             CustomException::actionException($this->repository->deleteProject($project->idprojeto));
             return response()->json(['message' => 'Projeto Excluido'], 200);
-            
-        }catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 403); 
-        }       
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 403);
+        }
     }
 
-    private function processingData($data) {
-         //cria o array somento com os dados para cria o projeto
+    private function processingData($data)
+    {
+        //cria o array somento com os dados para cria o projeto
         $dataProject = [
             'nome_projeto'  => $data['nomeProjeto'],
             'descricao'     => $data['descricao'],
@@ -205,7 +206,8 @@ class ProjectController extends Controller
         return $dataProject;
     }
 
-    public function comment(StoreCommentRequest $request, $slug) {
+    public function comment(StoreCommentRequest $request, $slug)
+    {
         if (Auth::guard('sanctum')->check()) {
             $userId = Auth::guard('sanctum')->user()->idusuario;
             $data = $request->validated();
@@ -238,22 +240,33 @@ class ProjectController extends Controller
             }
 
             return response()->json(['data' => $commentData], 200);
-        }         
+        }
         return response()->json(['message' => 'Autorização negada'], 401);
     }
 
-    public function denunciationProject(DenuciaProjectRequest $request) {
-        //valida os dados recebidos
-        $data = $request->validated();
-        try{
-            //verifica se a ação feita não deu erro
-            CustomException::actionException($this->repository->denunciaProjeto($data));
-        }catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 403); 
+    public function report(StoreReportProject $request, $slug)
+    {
+        try {
+            if (Auth::guard('sanctum')->check()) {
+                $project = $this->service->isProjectStored($slug);
+                if (!$project) {
+                    return response()->json(['message' => 'Projeto não encontrado'], 404);
+                }
+                //valida os dados recebidos
+                $data = $request->validated();
+                $data['idprojeto'] = $project->idprojeto;
+                //verifica se a ação feita não deu erro
+                CustomException::actionException($this->repository->reportProject($data));
+                return response()->json(['message' => 'Denuncia realizada'], 200);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 403);
         }
+        return response()->json(['message' => 'Autorização negada'], 401);
     }
 
-    private function addParticipants($participants, $projectId)  {
+    private function addParticipants($participants, $projectId)
+    {
         //decodifica os dados enviados
         $participants = json_decode($participants);
         //verifica os dados no array
@@ -261,11 +274,10 @@ class ProjectController extends Controller
             //faz o select dos nickname dos participantes
             $nickname = $this->users->getByNickname($value);
             //verifica se exite o nickname
-            if (!$nickname)
-            {
+            if (!$nickname) {
                 throw new HttpException(404, "Usúario Não Encontrado");
             };
-            //pega o id do usuario 
+            //pega o id do usuario
             $iduser = $nickname->idusuario;
             //prepara o array para fazer o insert no banco
             $data[] = [
@@ -277,10 +289,11 @@ class ProjectController extends Controller
         return $data;
     }
 
-    public function updateParticipants($olderParticipants, $newParticipants) {
+    public function updateParticipants($olderParticipants, $newParticipants)
+    {
         $olderParticipantsUsernames = $olderParticipants->map(function ($participant) {
             return $participant->apelido;
-        })->toArray();    
+        })->toArray();
 
         $newParticipantsUsername = \json_decode($newParticipants);
         $participantsNotInRequest = \array_diff($olderParticipantsUsernames, $newParticipantsUsername);
@@ -289,7 +302,7 @@ class ProjectController extends Controller
         $userIds = array_map(function ($username) use ($that) {
             return $that->users->getByNickname($username)->idusuario;
         }, $participantsNotInRequest);
-        
+
 
         if (!DB::table('permissao')->whereIn('idusuario', $userIds)->delete()) {
             return false;
@@ -298,32 +311,34 @@ class ProjectController extends Controller
         return true;
     }
 
-    public function challengeVinculation(Request $request) {
+    public function challengeVinculation(Request $request)
+    {
         //pega os dados recebido
         $data = $request->all();
-        $idProject = $data['idprojeto']; 
+        $idProject = $data['idprojeto'];
         $iddesafio = $data['iddesafio'];
         //faz do select do projeto que quer ser vinculado
         $get = $this->repository->getProject($idProject);
         //verifica se o projeto já estar vinculado a um desafio
         if($get[0]['iddesafio'] == null) {
             $data = ['iddesafio' => $iddesafio];
-            try{
+            try {
                 //verifica se a ação feita não deu erro
                 CustomException::actionException($this->repository->vinculationChallenge($data, $idProject));
-            }catch (\Exception $e) {
-                return response()->json(['message' => $e->getMessage()], 403); 
+            } catch (\Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 403);
             }
-        } else{
+        } else {
             return response()->json(['message' => 'Esse projeto já estar vinculado a um desafio'], 403);
         }
     }
 
-    public function challengeDesvinculation(Request $request) {
+    public function challengeDesvinculation(Request $request)
+    {
         //pega os dados recebido
         $data = $request->all();
         $idProject = $data['idprojeto'];
-         //faz do select do projeto que quer ser vinculado
+        //faz do select do projeto que quer ser vinculado
         $get = $this->repository->getProject($idProject);
         //verifica se o projeto já estar vinculado a um desafi
         if($get[0]['iddesafio'] != null) {
@@ -331,10 +346,10 @@ class ProjectController extends Controller
             try {
                 //verifica se a ação feita não deu erro
                 CustomException::actionException($this->repository->vinculationChallenge($data, $idProject));
-            }catch (\Exception $e) {
-                return response()->json(['message' => $e->getMessage()], 403); 
-            } 
-        }else{
+            } catch (\Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 403);
+            }
+        } else {
             return response()->json(['message' => 'Esse projeto já estar vinculado a um desafio'], 403);
         }
     }

@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use Auth;
 use App\Models\User;
 use App\Models\Project;
+use App\Models\Challenge;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\V1\UserResource;
 use App\Http\Resources\V1\ProjectResource;
+use App\Http\Resources\V1\ChallengeResource;
 use App\Http\Resources\V1\InvitationResource;
 use Log;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -115,5 +117,16 @@ class UserController extends Controller
         }
         $invites = $user->invite()->with('user')->paginate();
         return InvitationResource::collection($invites);
+    }
+
+    public function getChallengesPerfomed()
+    {
+        if (Auth::guard('sanctum')->check()) {
+            $user = Auth::guard('sanctum')->user()->idusuario;
+            $challenges = Challenge::with('project')->whereHas('project', function ($query) use ($user) {
+                $query->where('idusuario', $user);
+            })->get();
+            return ChallengeResource::collection($challenges);
+        }
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Resources\V1;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
+use App\Services\AuthService;
 
 class UserResource extends JsonResource
 {
@@ -17,12 +18,23 @@ class UserResource extends JsonResource
     {
         $carbonDate = Carbon::parse($this->data_criacao);
         $formattedDate = $carbonDate->format('d/m/Y');
+        $permission = $this->checkRole($this->idusuario);
+
         return [
             'id' => $this->idusuario,
             'nome' => $this->nome,
             'email' => $this->email,
             'apelido' => $this->apelido,
-            'dataCriacao' => $formattedDate
+            'dataCriacao' => $formattedDate,
+            'permissao' => $permission
         ];
+    }
+
+    public function checkRole($userId) 
+    {
+        $service = new AuthService();
+        if ($service->isAdm($userId)) return 'adm';
+        else if ($service->isTeacher($userId)) return 'professor';
+        else return 'aluno';
     }
 }
