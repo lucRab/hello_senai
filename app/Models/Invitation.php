@@ -97,10 +97,17 @@ class Invitation extends Model
      * Método para registrar o email no banco de dados
      *
      * @param array $data
-     * @return bool
+     * @return string
      */
     public function registerEmail(array $data) {
-        if(DB::table('registro_email')->insert($data)) return true;
+        $id = DB::table('registro_email')->insertGetId($data);
+        return $id;
+    }
+
+    public function updateEmail($data, $idemail) {
+        if(DB::table('registro_email')->where('idemail', '=', $idemail)->update($data)) {
+            return true;
+        }
         return false;
     }
 }

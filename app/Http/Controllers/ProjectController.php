@@ -7,23 +7,20 @@ use App\Models\User;
 use App\Services\CustomException;
 use Auth;
 use App\Models\Project;
-use App\Models\Challenge;
 use App\Services\ProjectService;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Http\Resources\V1\ProjectResource;
 use Illuminate\Support\Facades\Log;
+use Storage;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
 
 class ProjectController extends Controller
 {
     private $service;
     private $users;
-    private $challenge;
     /**
      * Método construtor
      *
@@ -35,7 +32,6 @@ class ProjectController extends Controller
     {
         $this->service = new ProjectService();
         $this->users = new User();
-        $this->challenge = new Challenge();
     }
 
     /**
@@ -56,52 +52,37 @@ class ProjectController extends Controller
         $user = Auth::guard('sanctum')->user();
         try {
             //verifica se o usuario tem autorização para realizar essa ação
-            CustomException::authorizedActionException('project-store', $user);
+            //CustomException::authorizedActionException('project-store', $user);
 
             //valida os dados recebido
             $data = $request->validated();
             //clona os dados recebidos
             $dataClone = $data;
-            //retira os dados dos participantes para fazer o insert no banco
-            if (!empty($data['participantes'])) unset($data['participantes']);    
-            //cria um apelido
+            $participants = null;
+            if(!empty($data['participantes'])) {
+                //Pega os dados dos participantes do clone dos dados recebidos
+                $participants = $dataClone['participantes'];
+                //retira os dados dos participantes para fazer o insert no banco
+                unset($data['participantes']);
+            }//cria um apelido
             $slug = $this->service->generateSlug($data['nomeProjeto']);
-            $data['slug'] = $slug;
+
             //trata os dados 
-            $project = $this->processingData($data, $slug);
-            $project['idusuario'] = $user->idusuario;
-
-            if (!empty($data['desafio']))
-            {
-                $challenge = $this->challenge->getBySlug($data['desafio']);
-                if (!$challenge)
-                {
-                    return response()->json(['message' => 'Desafio não encontrado'], 404);
-                }
-                $project['iddesafio'] = $challenge->iddesafio;
-            }
-
+            $project = $this->tratamentoDados($data, $slug);
+            $project['idusuario'] = Auth::guard('sanctum')->id();
             //verifica se a ação feita não deu erro
             CustomException::actionException($projectId = $this->repository->createProject($project));
-            //Pega os dados dos participantes do clone dos dados recebidos
+           
             //verifica se a participantes
-            if (!empty($dataClone['participantes'])) {
-                $participants = $dataClone['participantes'];
+            if ($participants != null) {
                 try {
                     //adiciona  os participantes participantes
                     $dataParticipants = $this->addParticipants($participants, $projectId);
                     $this->repository->addRangeParticipants($dataParticipants);
                 } catch (\Exception $message) {
-                    return response()->json(['message' => $message->getMessage()], 404);
+                    return response()->json(['message' => $message->getMessage()], $message->getCode());
                 }
             }
-            //cria um array para inserir o link
-            $link = [
-                'link' => $data['link'],
-                'idprojeto' =>$projectId
-            ];
-            //verifica se a ação feita não deu erro
-            CustomException::actionException($this->repository->linkGit($link)); 
             return response()->json(['message' => 'Projeto Criado'], 200); 
         }catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 403); 
@@ -123,35 +104,33 @@ class ProjectController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateProjectRequest $request, string $slug) {
-        try {     
-            $user = Auth::guard('sanctum')->user();
-            //pega o usuario logado
-            //pega o apelido do projeto
-            $project = $this->service->getBySlug($slug);
-
-            if (empty($project)) {
-                throw new NotFoundHttpException;
-            }
+    public function update(UpdateProjectRequest $request, $slug) {
+        //pega o usuario logado
+        $user = Auth::guard('sanctum')->user();
+        //pega o apelido do projeto
+        $project = $this->service->getBySlug($slug);
         
+        try {     
             //VERIFICAR SE O USUÁRIO QUE POSTOU É O MESMO QUE ATUALIZARÁ
-            CustomException::authorizedActionException('project-update', $user, $project);
+            CustomException::authorizedActionException( 'project-update', $user, $project);
+            //valida os dados recebidos
             $data = $request->validated();
             $data['idprojeto'] = $project->idprojeto;
-            
-            if ($data['nomeProjeto'] !== $project->nome_projeto)
+            //verifica se o nome atualizado é o mesmo que foi salvo primeiro
+            if ($data['nome_projeto'] != $project->nome_projeto)
             {
-                $data['slug'] = $this->service->generateSlug($data['nomeProjeto']);
+                //cria um apelido
+                $data['slug'] = $this->service->generateSlug($data['nome_projeto']);
             }
-
-            $dataUpdated = $this->processingData($data);
-            $dataUpdated['idprojeto'] = $data['idprojeto'];
-
-            // if ($request->participantes) {
-            //     $participantsNotInNewRequest = $this->updateParticipants($project->participants, $request->participantes);
-            // }
-            
-            CustomException::actionException($this->repository->updateProject($dataUpdated));
+            //verifica se a uma imagem nos dados enviado
+            if($data['imagem']) {
+                //pega a extenção da imegem
+                $extension = $data['imagem']->getClientOriginalExtension();
+                //salva a imagem e pega o caminho onde ela foi salva
+                $data['imagem'] = $data['imagem']->storeAs('projects', $project['slug'].'.'.$extension);
+            }
+            //verifica se a ação feita não deu erro
+            CustomException::actionException($this->repository->updateProject($data));
             return response()->json(['message' => 'Projeto Atualizado'], 200);
         }catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 403); 
@@ -178,27 +157,21 @@ class ProjectController extends Controller
         }       
     }
 
-    private function processingData($data) {
+    private function tratamentoDados($data, $name) {
          //cria o array somento com os dados para cria o projeto
-        $dataProject = [
+        $tratamento = [
             'nome_projeto'  => $data['nomeProjeto'],
             'descricao'     => $data['descricao'],
             'status'        => $data['status'],
+            'link'          => $data['link'],
+            'slug'          => $name,    
         ];
-
-        if (!empty($data['slug'])) {
-            $dataProject['slug'] = $data['slug'];
-        }
-
         //verifica se a uma imagem nos dados enviado
-        if(gettype($data['imagem']) !== 'string') {
-            //pega a extenção da imegem
-            $extension = $data['imagem']->getClientOriginalExtension();
-            $image = Storage::disk('public')->putFile('projects', $data['imagem']);
+        if(!empty($data['imagem'])) {
             //salva a imagem e pega o caminho onde ela foi salva
-            $dataProject['imagem'] = $image;
+            $tratamento['imagem'] = Storage::disk('public')->putFile('projects', $data['imagem']);
         }
-        return $dataProject;
+        return $tratamento;
     }
 
     public function denunciationProject(DenuciaProjectRequest $request) {
@@ -224,7 +197,7 @@ class ProjectController extends Controller
                 throw new HttpException(404, "Usúario Não Encontrado");
             };
             //pega o id do usuario 
-            $iduser = $nickname->idusuario;
+            $iduser = $nickname[0]['idusuario'];
             //prepara o array para fazer o insert no banco
             $data[] = [
                 'idusuario' => $iduser,
@@ -234,28 +207,6 @@ class ProjectController extends Controller
         }
         return $data;
     }
-
-    public function updateParticipants($olderParticipants, $newParticipants) {
-        $olderParticipantsUsernames = $olderParticipants->map(function ($participant) {
-            return $participant->apelido;
-        })->toArray();    
-
-        $newParticipantsUsername = \json_decode($newParticipants);
-        $participantsNotInRequest = \array_diff($olderParticipantsUsernames, $newParticipantsUsername);
-
-        $that = $this;
-        $userIds = array_map(function ($username) use ($that) {
-            return $that->users->getByNickname($username)->idusuario;
-        }, $participantsNotInRequest);
-        
-
-        if (!DB::table('permissao')->whereIn('idusuario', $userIds)->delete()) {
-            return false;
-        };
-
-        return true;
-    }
-
     public function challengeVinculation(Request $request) {
         //pega os dados recebido
         $data = $request->all();

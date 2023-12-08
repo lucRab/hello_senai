@@ -26,7 +26,7 @@ class StoreProjectRequest extends FormRequest
             'descricao' => 'required',
             'status' => 'required',
             'link' => 'required|regex:/github.com/',
-            'imagem' => 'required|image|max:1024',
+            'imagem' => 'nullable|image|max:1024',
             'participantes' => 'nullable',
             'desafio' => 'nullable'
         ];

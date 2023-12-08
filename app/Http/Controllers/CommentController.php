@@ -26,20 +26,16 @@ class CommentController extends Controller
         //
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+ 
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(CommentRequest $request) {
+        //valida os dados recebidos
         $data = $request->validated();
         try {
+            //verifica se a ação feita não deu erro
            CustomException::actionException($this->repository->createComment($data));
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage() ], 403);
@@ -55,19 +51,13 @@ class CommentController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit( $comment)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(UpdateCommentRequest $request, string $comment) {
+        //valida os dados recebidos
         $data = $request->validated();
         try {
+            //verifica se a ação feita não deu erro
             CustomException::actionException($this->repository->updateComment($comment, $data));
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage() ], 403);
@@ -79,6 +69,7 @@ class CommentController extends Controller
      */
     public function destroy(string $comment) {
         try {
+            //verifica se a ação feita não deu erro
             CustomException::actionException($this->repository->deleteComment($comment));
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage() ], 403);
