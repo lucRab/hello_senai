@@ -52,7 +52,7 @@ class ProjectController extends Controller
         $user = Auth::guard('sanctum')->user();
         try {
             //verifica se o usuario tem autorização para realizar essa ação
-            //CustomException::authorizedActionException('project-store', $user);
+            CustomException::authorizedActionException('project-store', $user);
 
             //valida os dados recebido
             $data = $request->validated();
@@ -66,10 +66,11 @@ class ProjectController extends Controller
                 unset($data['participantes']);
             }//cria um apelido
             $slug = $this->service->generateSlug($data['nomeProjeto']);
-
+            var_dump($data);
             //trata os dados 
             $project = $this->tratamentoDados($data, $slug);
-            $project['idusuario'] = Auth::guard('sanctum')->id();
+            $project['idusuario'] = "33";
+            //Auth::guard('sanctum')->id();
             //verifica se a ação feita não deu erro
             CustomException::actionException($projectId = $this->repository->createProject($project));
            

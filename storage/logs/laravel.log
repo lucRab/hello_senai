@@ -4848,3 +4848,44 @@
 #45 C:\\Users\\Querem\\Documents\\hello_senai\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(16): require_once('C:\\\\Users\\\\Querem...')
 #46 {main}
 "} 
+[2023-12-08 18:35:34] local.ERROR: App\Services\CustomException Error [{"Illuminate\\Http\\Request":"GET /api/teste HTTP/1.1
+
+Accept:                    text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+
+Accept-Encoding:           gzip, deflate, br
+
+Accept-Language:           pt-BR,pt;q=0.9,en;q=0.8,en-US;q=0.7
+
+Connection:                keep-alive
+
+Cookie:                    XSRF-TOKEN=eyJpdiI6ImlqSVYzcHdCdU1PWEpxRGdsMkgrckE9PSIsInZhbHVlIjoiWVZrZnVDQmNXdnNwRFlHY1hOdFE1ODJxb1cwdFFQLytaamdEOTc3VkNRT0ROQkdMdzNkUkIyWjZlOVVGZUlFN3EyQngwV3NzVUdGMUJWY1ZaY0QweXR1QzIwRTFBQmNiUW11TStZTDdzN0JMVGNlQVo4bTBKRzF3VUh1RGZpL2QiLCJtYWMiOiI0YWUwOTEzY2QzMDI3MWVhYzYyMzNjNmQ2NmU5Yzc4Y2E1MDVmMTUwNGU4ZDE2YmI1OWUwMjc3ZTYwMzc2Yzg0IiwidGFnIjoiIn0%3D; laravel_session=eyJpdiI6InRLdmlwMDNwSUJTWFl3aDYzQkFQVmc9PSIsInZhbHVlIjoiQ2JaLzVVNG1RcURQODg5dUVvcVExTURucXB0V1JJcFNiVFZCeitZUlI1UVNTMjlyemJXZmlBeXZlVi9TSkpSZ0JmYUpzblNMNGxtQU5jT1JGRDBrbzlKL0ZDVlBDU2EwQlFaaGRnU1lVR0FOZml1M1dmK212dFdTeXpqOHYwdnoiLCJtYWMiOiI3NGVkZTgzMjQ3M2I5ZGE4MDBmYjk0NWQwNTU2N2RkZmVmZTNmY2Y2NDliZTVjYmY2MmVjMmM1ZmRmODhlNTkxIiwidGFnIjoiIn0%3D
+
+Host:                      127.0.0.1:8000
+
+Sec-Ch-Ua:                 \"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"
+
+Sec-Ch-Ua-Mobile:          ?0
+
+Sec-Ch-Ua-Platform:        \"Windows\"
+
+Sec-Fetch-Dest:            document
+
+Sec-Fetch-Mode:            navigate
+
+Sec-Fetch-Site:            none
+
+Sec-Fetch-User:            ?1
+
+Upgrade-Insecure-Requests: 1
+
+User-Agent:                Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+
+Cookie: XSRF-TOKEN=eyJpdiI6ImlqSVYzcHdCdU1PWEpxRGdsMkgrckE9PSIsInZhbHVlIjoiWVZrZnVDQmNXdnNwRFlHY1hOdFE1ODJxb1cwdFFQLytaamdEOTc3VkNRT0ROQkdMdzNkUkIyWjZlOVVGZUlFN3EyQngwV3NzVUdGMUJWY1ZaY0QweXR1QzIwRTFBQmNiUW11TStZTDdzN0JMVGNlQVo4bTBKRzF3VUh1RGZpL2QiLCJtYWMiOiI0YWUwOTEzY2QzMDI3MWVhYzYyMzNjNmQ2NmU5Yzc4Y2E1MDVmMTUwNGU4ZDE2YmI1OWUwMjc3ZTYwMzc2Yzg0IiwidGFnIjoiIn0=; laravel_session=eyJpdiI6InRLdmlwMDNwSUJTWFl3aDYzQkFQVmc9PSIsInZhbHVlIjoiQ2JaLzVVNG1RcURQODg5dUVvcVExTURucXB0V1JJcFNiVFZCeitZUlI1UVNTMjlyemJXZmlBeXZlVi9TSkpSZ0JmYUpzblNMNGxtQU5jT1JGRDBrbzlKL0ZDVlBDU2EwQlFaaGRnU1lVR0FOZml1M1dmK212dFdTeXpqOHYwdnoiLCJtYWMiOiI3NGVkZTgzMjQ3M2I5ZGE4MDBmYjk0NWQwNTU2N2RkZmVmZTNmY2Y2NDliZTVjYmY2MmVjMmM1ZmRmODhlNTkxIiwidGFnIjoiIn0=
+
+
+
+"},null] 
+[2023-12-08 19:06:42] local.INFO: App\Http\Controllers\AuthController Requisição de login {"dados":{"email":"pessoa2@ba.estudante.senai.br"}} 
+[2023-12-08 19:06:42] local.ERROR: App\Http\Controllers\AuthController Error Login {"dados":{"nome":"pessoa3","email":"pessoa2@ba.estudante.senai.br","senha":"pessoa2"},"browser":"Thunder Client (https://www.thunderclient.com)","URI":"/api/auth/login","Server":"PHP 8.1.17 Development Server"} 
+[2023-12-08 19:08:14] local.INFO: App\Http\Controllers\AuthController Requisição de login {"dados":{"email":"pessoa2@ba.estudante.senai.br"}} 
+[2023-12-08 19:08:14] local.INFO: App\Http\Controllers\AuthController Login realizado {"dados":{"nome":"pessoa3","email":"pessoa2@ba.estudante.senai.br","senha":"pessoa2"},"browser":"Thunder Client (https://www.thunderclient.com)","URI":"/api/auth/login","Server":"PHP 8.1.17 Development Server"} 

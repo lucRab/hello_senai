@@ -133,10 +133,8 @@ class ChallengeController extends Controller
     private function tratamenteDataChallenge($data, $name, $idusuario ) {
         //verifica se a uma imagem nos dados enviado
         if(!empty($data['imagem'])) {
-            //pega a extenção da imegem
-            $extension = $data['imagem']->getClientOriginalExtension();
             //salva a imagem e pega o caminho onde ela foi salva
-            $imagem = $data['imagem']->storeAs('projects', $name.'.'.$extension);
+            $imagem =  Storage::disk('public')->putFile('projects',$data['imagem']);
         }else {
             //caso não tenha imagem ele define como nulo
             $imagem = null;
