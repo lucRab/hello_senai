@@ -170,7 +170,7 @@ class ProjectController extends Controller
             //pega a extenção da imegem
             $extension = $data['imagem']->getClientOriginalExtension();
             //salva a imagem e pega o caminho onde ela foi salva
-            $tratamento['imagem'] = $data['imagem']->storeAs('projects', $name.'.'.$extension);
+            $tratamento['imagem'] = Storage::disk('public')->putFile('projects', $data['imagem']);
         }
         return $tratamento;
     }

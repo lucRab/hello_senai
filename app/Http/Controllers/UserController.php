@@ -13,6 +13,7 @@ use App\Http\Resources\V1\InvitationResource;
 use Log;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -115,5 +116,13 @@ class UserController extends Controller
         }
         $invites = $user->invite()->with('user')->paginate();
         return InvitationResource::collection($invites);
+    }
+    
+    public function saveImg($imagem) {
+        //pega a extenção da imegem
+        $extension = $imagem->getClientOriginalExtension();
+        //salva a imagem e pega o caminho onde ela foi salva
+        $img = Storage::disk('public')->putFile('user', $imagem);
+        return $img;
     }
 }

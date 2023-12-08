@@ -14,9 +14,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-//Route::resource('usuario',[UserController::class]);
-
-// api/v1/usuario
+// api/v1/
 Route::group(['prefix' => 'v1'], function () {
     Route::apiResource('usuario', UserController::class);
     Route::get('usuario/{username}/projetos', [UserController::class, 'getProjects']);
@@ -37,6 +35,8 @@ Route::group(['prefix' => 'v1'], function () {
     Route::apiResource('comentario', CommentController::class);
 });
 
+//Rotas Login
+//api/auth/
 Route::group(['prefix' => 'auth'], function () {
     Route::post('/login', [AuthController::class, 'login']);   
     Route::post('/logout', [AuthController::class, 'logout']);   
@@ -44,5 +44,9 @@ Route::group(['prefix' => 'auth'], function () {
     Route::get('/profile', [AuthController::class, 'profile']);   
 });
 
-Route::post('/teste/{convite}', [InvitationController::class,'aceitarInvite']);
-Route::get('/email/{email}', [InvitationController::class,'emailAceito']);
+//Rotas para email
+//api/email/
+Route::group(['prefiz' => 'email'], function () {
+    Route::post('/{convite}', [InvitationController::class,'aceitarInvite']);
+    Route::get('/{email}', [InvitationController::class,'emailAceito']);
+});
