@@ -23,6 +23,7 @@ Route::group(['prefix' => 'v1'], function () {
     Route::get('usuario/{username}/projetos', [UserController::class, 'getProjects']);
     Route::get('usuario/{username}/convites', [UserController::class, 'getInvites']);
     Route::get('usuario/desafios/realizados', [UserController::class, 'getChallengesPerfomed']);
+    Route::get('usuario/convites/notificacoes', [UserController::class, 'getNotifications']);
 
     Route::apiResource('professor', TeacherController::class);
 
@@ -46,6 +47,13 @@ Route::group(['prefix' => 'auth'], function () {
     Route::post('/logout', [AuthController::class, 'logout']);   
     Route::post('/create/teacher', [AuthController::class, 'registerTeacher']);   
     Route::get('/profile', [AuthController::class, 'profile']);   
+});
+
+//Rotas para email
+//api/email/
+Route::group(['prefix' => 'email'], function () {
+    Route::post('/{convite}', [InvitationController::class, 'acceptInvite']);
+    Route::get('/{email}', [InvitationController::class, 'ownerInviteAcceptUser']);
 });
 
 Route::post('/teste/{convite}', [InvitationController::class,'aceitarInvite']);

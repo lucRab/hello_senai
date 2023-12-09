@@ -126,6 +126,11 @@ class User extends Authenticatable
         Log::error(self::class. "Error desativate", ['id usuario: ' => $id, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
         return false; 
     }
+
+    public function notifications($userId) {
+        $data = Email::with('user')->where('idusuario_convite', $userId)->get();
+        return $data;
+    }
     
     /**
      * Função para selecionar o usuario pelo apelido;

@@ -11,10 +11,12 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\V1\UserResource;
 use App\Http\Resources\V1\ProjectResource;
 use App\Http\Resources\V1\ChallengeResource;
+use App\Http\Resources\V1\NotificationsResource;
 use App\Http\Resources\V1\InvitationResource;
 use Log;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -127,6 +129,15 @@ class UserController extends Controller
                 $query->where('idusuario', $user);
             })->get();
             return ChallengeResource::collection($challenges);
+        }
+    }
+
+    public function getNotifications() 
+    {
+        if (Auth::guard('sanctum')->check()) {
+            $user = Auth::guard('sanctum')->user()->idusuario;
+            $notifications = $this->repository->notifications($user);
+            return NotificationsResource::collection($notifications);
         }
     }
 }

@@ -116,35 +116,63 @@ class InvitationController extends Controller
            return response()->json(['message' => $e->getMessage()], 403); 
         }
     }
-    /**
+        /**
      * Método para enviar e registrar email quando um usuario aceita um convite
      *
      * @param Request $request
      * @param [type] $slug
      * @return void
      */
-    public function aceitarInvite(Request $request, $slug) {
+    public function acceptInvite(Request $request, $slug) {
         //Pegando os dados do usuario logado
-        $user = Auth::guard('sanctum')->user();
+        if (Auth::guard('sanctum')->check()) {
+            $user = Auth::guard('sanctum')->user();
+            try {
+                //Menssagem que o usuario ira enviar para quem fez o convite
+                $message = $request->all()['mensagem'];
+                //Pegando os dados de quem criou o convite
+                $inviteUser = $this->repository->getUserInvite($slug);
+                
+                if (!$inviteUser) {
+                    return response()->json(['message' => 'Convite não encontrado'], 404);
+                }
+
+                if (Auth::guard('sanctum')->id() === $inviteUser->idusuario) {
+                    return response()->json(['message' => 'Erro ao aceitar convite'], 403);
+                }
+
+                //Dados para salvar no banco
+                $data = [
+                   'idusuario' => Auth::guard('sanctum')->id(),
+                   'idconvite' => $inviteUser->idconvite,
+                   'idusuario_convite' => $inviteUser->idusuario,
+                   'texto'     => $message,
+                   'status'    => 0,
+                ];
+                //Salvando registro do email
+                $id = $this->repository->sendEmail($data);
+                //Enviando Email para o usuario que criou o convite
+                Mails::sendInvite($message, $inviteUser->nome, $inviteUser->email, $user['email'], $user['nome'], $id);
+                return response()->json(['message' => 'Mensagem enviada'], 200);
+            }catch(Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 403);
+            }
+        }
+        return response()->json(['message' => 'Autorização negada'], 401);
+    }
+
+    public function ownerInviteAcceptUser($idemail) {
+        //deifine o status do email como true
+       $data = ['status' => 1];
         try {
-            //Menssagem que o usuario ira enviar para quem fez o convite
-            $message = $request->all()['mensagem'];
-            //Pegando os dados de quem criou o convite
-            $inviteUser = $this->repository->getUserInvite($slug);
-            //Dados para salvar no banco
-            $data = [
-               'idusuario' => Auth::guard('sanctum')->id(),
-               'idconvite' => $inviteUser[0]->idconvite,
-               'idusuario_convite' => $inviteUser[0]->idusuario,
-               'texto'     => $message,
-               'status'    => false,
-            ];
-            //Salvando registro do email
-            CustomException::actionException($this->repository->registerEmail($data));
-            //Enviando Email para o usuario que criou o convite
-            Mails::sendInvite($message, $inviteUser[0]->nome, $inviteUser[0]->email);
+            //verifica se ação ocorreu bem
+            CustomException::actionException($this->repository->updateInviteEmail($data, $idemail));
+            //retorna uma view para o usuario
+            return view('mails');
         }catch(Exception $e) {
             return response()->json(['message' => $e->getMessage()], 403);
         }
+
     }
+
 }

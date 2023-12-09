@@ -90,8 +90,7 @@ class Invitation extends Model
         return DB::table('convite as c')
         ->join('usuario as u','c.idusuario', '=', 'u.idusuario')
         ->where('slug', '=', $slug)
-        ->get(['u.nome','u.email', 'u.idusuario', 'c.idconvite'])
-        ->toArray();
+        ->first(['u.nome','u.email', 'u.idusuario', 'c.idconvite']);
     }
     /**
      * Método para registrar o email no banco de dados
@@ -99,8 +98,15 @@ class Invitation extends Model
      * @param array $data
      * @return bool
      */
-    public function registerEmail(array $data) {
-        if(DB::table('registro_email')->insert($data)) return true;
+    public function sendEmail(array $data) {
+        $id = DB::table('registro_email')->insertGetId($data);
+        return $id;
+    }
+
+    public function updateInviteEmail($data, $idemail) {
+        if(DB::table('registro_email')->where('idemail', '=', $idemail)->update($data)) {
+            return true;
+        }
         return false;
     }
 }
