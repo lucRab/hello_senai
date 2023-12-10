@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Laravel\Sanctum\HasApiTokens; 
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\V1\ProjectResource;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class Project extends Model
 {
@@ -86,12 +87,11 @@ class Project extends Model
     public function updateProject($data)
     {
         $idProject = $data['idprojeto'];
-        if ($this->where('idprojeto', '=', $idProject)->update($data))
-        {
-            return true;
+        $update = $this->where('idprojeto', '=', $idProject)->update($data);
+        if ($update === false) {
+            Log::error(self::class. "Error Update", ['dados: ' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
+            throw new HttpException(403, 'Ocorreu um erro ao atualizar o projeto');
         };
-        Log::error(self::class. "Error Update", ['dados: ' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
-        throw new \Exception('dsadsds');
     }
     /**
      * Método para deletar o projeto
