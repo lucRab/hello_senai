@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use App\Models\Invitation;
 use App\Services\InvitationService;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use App\Filters\V1\InvitesFilter;
 
 
 class InvitationController extends Controller
@@ -29,9 +30,18 @@ class InvitationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $invitations = $this->repository->with('user')->paginate();
+        $filter = new InvitesFilter();
+        $queryItems = $filter->transform($request);
+        $order = $request->query('order') ?? 'DESC';
+
+        if (empty($queryItems)) {
+            $invitations = $this->repository->with('user')->orderBy('data_convite', $order)->paginate();
+            return InvitationResource::collection($invitations);
+        }
+
+        $invitations = $this->repository->with('user')->where($queryItems)->orderBy('data_convite', $order)->paginate();
         return InvitationResource::collection($invitations);
     }
 

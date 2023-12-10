@@ -18,10 +18,10 @@ use App\Http\Resources\V1\CommentResource;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Filters\V1\ProjectsFilter;
 
 class ProjectController extends Controller
 {
@@ -44,10 +44,19 @@ class ProjectController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $projects = $this->repository->with(['user', 'comments.user', 'comments.reply.user'])->paginate();
-        return ProjectResource::collection($projects);
+        $filter = new ProjectsFilter();
+        $queryItems = $filter->transform($request);
+        $order = $request->query('order') ?? 'DESC';
+
+        if (empty($queryItems)) {
+            $projects = $this->repository->with(['user', 'comments.user', 'comments.reply.user'])->orderBy('data_projeto', $order)->paginate();
+            return ProjectResource::collection($projects);
+        }
+
+        $projects = $this->repository->with(['user', 'comments.user', 'comments.reply.user'])->where($queryItems)->orderBy('data_projeto', $order)->paginate();
+        return ProjectResource::collection($projects->appends($request->query()));
     }
 
     /**
@@ -130,15 +139,12 @@ class ProjectController extends Controller
     {
         try {
             $user = Auth::guard('sanctum')->user();
-            //pega o usuario logado
-            //pega o apelido do projeto
             $project = $this->service->getBySlug($slug);
 
             if (empty($project)) {
-                throw new NotFoundHttpException();
+                throw new HttpException(404, 'Projeto não encontrado');
             }
 
-            //VERIFICAR SE O USUÁRIO QUE POSTOU É O MESMO QUE ATUALIZARÁ
             CustomException::authorizedActionException('project-update', $user, $project);
             $data = $request->validated();
             $data['idprojeto'] = $project->idprojeto;
@@ -150,14 +156,14 @@ class ProjectController extends Controller
             $dataUpdated = $this->processingData($data);
             $dataUpdated['idprojeto'] = $data['idprojeto'];
 
-            // if ($request->participantes) {
-            //     $participantsNotInNewRequest = $this->updateParticipants($project->participants, $request->participantes);
-            // }
+            if ($request->participantes) {
+                $participantsNotInNewRequest = $this->updateParticipants($project->participants, $request->participantes, $data['idprojeto']);
+            }
 
-            CustomException::actionException($this->repository->updateProject($dataUpdated));
+            $this->repository->updateProject($dataUpdated);
             return response()->json(['message' => 'Projeto Atualizado'], 200);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 403);
+        } catch (HttpException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
         }
     }
 
@@ -289,27 +295,40 @@ class ProjectController extends Controller
         return $data;
     }
 
-    public function updateParticipants($olderParticipants, $newParticipants)
+    public function updateParticipants($olderParticipants, $newParticipants, $projectId)
     {
         $olderParticipantsUsernames = $olderParticipants->map(function ($participant) {
             return $participant->apelido;
         })->toArray();
 
         $newParticipantsUsername = \json_decode($newParticipants);
-        $participantsNotInRequest = \array_diff($olderParticipantsUsernames, $newParticipantsUsername);
 
-        $that = $this;
-        $userIds = array_map(function ($username) use ($that) {
-            return $that->users->getByNickname($username)->idusuario;
-        }, $participantsNotInRequest);
+        // Find participants to remove
+        $participantsToRemove = \array_diff($olderParticipantsUsernames, $newParticipantsUsername);
 
+        // Find participants to add
+        $participantsToAdd = \array_diff($newParticipantsUsername, $olderParticipantsUsernames);
 
-        if (!DB::table('permissao')->whereIn('idusuario', $userIds)->delete()) {
-            return false;
-        };
+        // Remove participants
+        if (!empty($participantsToRemove)) {
+            $participantsToRemoveIds = $this->users->whereIn('apelido', $participantsToRemove)->pluck('idusuario');
+            if (!DB::table('permissao')->whereIn('idusuario', $participantsToRemoveIds)->delete()) {
+                throw new HttpException(403, 'Não foi possível remover o participante');
+            };
+        }
+
+        // Add participants
+        if (!empty($participantsToAdd)) {
+            $participantsToAddIds = $this->users->whereIn('apelido', $participantsToAdd)->pluck('idusuario');
+            $newPermissions = array_map(function ($id) use ($projectId) {
+                return ['idusuario' => $id, 'idprojeto' => $projectId];
+            }, $participantsToAddIds->toArray());
+            DB::table('permissao')->insert($newPermissions);
+        }
 
         return true;
     }
+
 
     public function challengeVinculation(Request $request)
     {
