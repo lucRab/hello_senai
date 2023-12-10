@@ -29,10 +29,7 @@ class AuthController extends Controller
         return ['project-store', 'project-update', 'project-destroy', 'invite-store', 'invite-update', 'invite-destroy'];
     }
 
-    public function register(Request $request)
-    {
 
-    }
 
     public function registerTeacher(StoreTeacherRequest $request)
     {
@@ -55,12 +52,17 @@ class AuthController extends Controller
         if ($credentials)
         {
             $userId = Auth::user()->idusuario;
+            $status = $request->user()->status;
+            
             if ($this->service->isAdm($userId))
             {
                 Log::info(self::class. " Login realizado",['dados' => $request->all(),
                 "browser" => $_SERVER["HTTP_USER_AGENT"],
                 'URI' => $_SERVER["REQUEST_URI"],
                 'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+                if ($status == 'inativo') {
+                    $request->user()->update(['status' => 'ativo']);
+                }
                 return $request->user()->createToken('token');
             }
             else
@@ -75,17 +77,17 @@ class AuthController extends Controller
                 "browser" => $_SERVER["HTTP_USER_AGENT"],
                 'URI' => $_SERVER["REQUEST_URI"],
                 'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+                if ($status == 'inativo') {
+                    $request->user()->update(['status' => 'ativo']);
+                }
                 return $request->user()->createToken('token', $abilities);
             }
         }
-        else
-        {
-            Log::error(self::class. " Error Login",['dados' => $request->all(),
-                                                    "browser" => $_SERVER["HTTP_USER_AGENT"],
-                                                    'URI' => $_SERVER["REQUEST_URI"],
-                                                    'Server' => $_SERVER["SERVER_SOFTWARE"]]);
-            return response()->json("Dados Incorretos", 403);
-        }
+        Log::error(self::class. " Error Login",['dados' => $request->all(),
+        "browser" => $_SERVER["HTTP_USER_AGENT"],
+        'URI' => $_SERVER["REQUEST_URI"],
+        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+        return response()->json("Dados Incorretos", 403);
     }
 
     public function profile()
@@ -95,14 +97,16 @@ class AuthController extends Controller
             $data = new UserResource(Auth::guard('sanctum')->user());
             return response()->json($data, 200);
         }
-        return response()->json("Unauthorized", 401);
+        return response()->json(['message' => "Autorização negada"], 401);
     }
 
-    public function logout(Request $request)
+    public static function logout()
     {
-        Auth::guard('sanctum')->user()->currentAccessToken()->delete(); 
-        return response()->json('Token Revogado', 200);
+        if (Auth::guard('sanctum')->check()) {
+            Auth::guard('sanctum')->user()->currentAccessToken()->delete(); 
+            return response()->json(['message' => 'Token Revogado'], 200);
+        }
+        return response()->json(['message' => 'Autorização negada'], 401);
     }
-
     
 }
