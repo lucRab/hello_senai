@@ -14,18 +14,22 @@ use App\Http\Resources\V1\ChallengeResource;
 use App\Http\Resources\V1\NotificationsResource;
 use App\Http\Resources\V1\InvitationResource;
 use Log;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\DateService;
 
 class UserController extends Controller
 {
     private $project;
+    private $dateService;
+
     public function __construct(
         protected User $repository,
     ) {
         $this->middleware('auth:sanctum')->only(['update', 'destroy']);
         $this->project = new Project();
+        $this->dateService = new DateService();
     }
 
     /**
@@ -59,8 +63,15 @@ class UserController extends Controller
      */
     public function show(string $apelido)
     {
-        $user = $this->repository->findOrFail($apelido);
-        return new UserResource($user);
+        $user = User::where('apelido', $apelido)->first();
+        if (!$user) return response()->json(['message' => 'Usuário não encontrado'], 404);
+        $data = [
+            'nome' => $user->nome,
+            'apelido' => $user->apelido,
+            'criadoEm' => DateService::transformDateHumanReadable($user->data_criacao),
+            'status' => $user->status
+        ];
+        return $data;
     }
 
     /**
@@ -83,22 +94,32 @@ class UserController extends Controller
         return response()->json(['message' => 'Unauthorized'], 401);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(User $user)
+    public function disableAccount()
     {
-        $id = $user->id;
-        $delete = $this->repository->desativateUser($id);
+        try {
+            if (Auth::guard('sanctum')->check()) {
+                $user = Auth::guard('sanctum')->user()->idusuario;
+                $delete = $this->repository->disable($user);
+                AuthController::logout();
+                return response()->json(['message' => 'Conta desativada'], 200);
+            }
+            throw new HttpException(401, 'Autorização negada');
+        } catch (HttpException $th) {
+            return response()->json(['message' => $th->getMessage()], $th->getStatusCode());
+        }
     }
 
-    public function vericationStatus(string $apelido)
+    public function changePassoword(Request $request)
     {
-        $get = $this->repository->getByNickname($apelido);
-        if($get[0]['status'] == 'Inativo') {
-            return false;
+        if (Auth::guard('sanctum')->check()) {
+            $validated = $request->validate([
+                'senha' => 'required|min:6|max:255'
+            ]);
+            $user = Auth::guard('sanctum')->user()->idusuario;
+            $this->repository->updateUser(['senha' => bcrypt($validated['senha'])], $user);
+            return response()->json(['message' => 'Senha atualizada'], 200);
         }
-        return true;
+        return response()->json(['message' => 'Autorização negada'], 401);
     }
 
     public function getProjects($username)

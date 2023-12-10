@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Project;
 use App\Models\Invitation;
 use App\Models\Teacher;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class User extends Authenticatable
 {
@@ -21,7 +22,8 @@ class User extends Authenticatable
         'nome',
         'email',
         'senha',
-        'apelido'
+        'apelido',
+        'status'
     ];
     protected $hidden = [
         'senha'
@@ -119,12 +121,11 @@ class User extends Authenticatable
      * @param $id id do usuario
      * @return bool
      */
-    public function desativateUser($id) {
-        if($this->where('idusuario', $id)->update(['status' => 'inativo'])) {
-            return true;
+    public function disable($id) {
+        if(!$this->where('idusuario', $id)->update(['status' => 'inativo'])) {
+            Log::error(self::class. "Error desativate", ['id usuario: ' => $id, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
+            throw new HttpException(403, 'Não foi possível desativar sua conta');
         }
-        Log::error(self::class. "Error desativate", ['id usuario: ' => $id, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
-        return false; 
     }
 
     public function notifications($userId) {
