@@ -35,13 +35,14 @@ class InvitationController extends Controller
         $filter = new InvitesFilter();
         $queryItems = $filter->transform($request);
         $order = $request->query('order') ?? 'DESC';
+        $limit = $request->query('limit') ?? 15;
 
         if (empty($queryItems)) {
-            $invitations = $this->repository->with('user')->orderBy('data_convite', $order)->paginate();
+            $invitations = $this->repository->with('user')->orderBy('data_convite', $order)->paginate($limit);
             return InvitationResource::collection($invitations);
         }
 
-        $invitations = $this->repository->with('user')->where($queryItems)->orderBy('data_convite', $order)->paginate();
+        $invitations = $this->repository->with('user')->where($queryItems)->orderBy('data_convite', $order)->paginate($limit);
         return InvitationResource::collection($invitations);
     }
 

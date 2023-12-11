@@ -49,13 +49,14 @@ class ProjectController extends Controller
         $filter = new ProjectsFilter();
         $queryItems = $filter->transform($request);
         $order = $request->query('order') ?? 'DESC';
+        $limit = $request->query('limit') ?? 7;
 
         if (empty($queryItems)) {
-            $projects = $this->repository->with(['user', 'comments.user', 'comments.reply.user'])->orderBy('data_projeto', $order)->paginate();
+            $projects = $this->repository->with(['user', 'comments.user', 'comments.reply.user'])->orderBy('data_projeto', $order)->paginate($limit);
             return ProjectResource::collection($projects);
         }
 
-        $projects = $this->repository->with(['user', 'comments.user', 'comments.reply.user'])->where($queryItems)->orderBy('data_projeto', $order)->paginate();
+        $projects = $this->repository->with(['user', 'comments.user', 'comments.reply.user'])->where($queryItems)->orderBy('data_projeto', $order)->paginate($limit);
         return ProjectResource::collection($projects->appends($request->query()));
     }
 
