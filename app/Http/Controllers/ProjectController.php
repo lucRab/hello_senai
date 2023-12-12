@@ -173,17 +173,19 @@ class ProjectController extends Controller
      */
     public function destroy($slug)
     {
-        //pega o usuario logado
-        $user = Auth::guard('sanctum')->user();
-        //pega o apelido do projeto
-        $project = $this->service->getBySlug($slug);
         try {
-            //VERIFICAR SE O USUÁRIO QUE POSTOU É O MESMO QUE DELETARA
-            CustomException::authorizedActionException('project-update', $user, $project);
-            //verifica se a ação feita não deu erro
-            CustomException::actionException($this->repository->deleteProject($project->idprojeto));
-            return response()->json(['message' => 'Projeto Excluido'], 200);
-
+            if (Auth::guard('sanctum')->check()) {
+                $user = Auth::guard('sanctum')->user();
+                $project = $this->service->getBySlug($slug);
+                if (!$project) throw new HttpException(404, 'Projeto não encontrado');
+                if ($project->idusuario === $user->idusuario) {
+                    CustomException::authorizedActionException('project-destroy', $user, $project);
+                    CustomException::actionException($this->repository->deleteProject($project->idprojeto));
+                    return response()->json(['message' => 'Projeto Excluido'], 200);
+                }
+            }
+            
+            throw new HttpException(401, 'Autorização negada');
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 403);
         }
