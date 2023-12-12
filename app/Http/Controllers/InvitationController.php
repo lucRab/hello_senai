@@ -112,19 +112,21 @@ class InvitationController extends Controller
      * Remove the specified resource from storage.
      */
     public function destroy($slug) {
-        $invitation = $this->service->getBySlug($slug);
-        //Pega o usuario  logado
-        $user = Auth::guard('sanctum')->user();
-        
         try {
-            //verifica se o usuario tem autorizão para realizar a ação
-            CustomException::authorizedActionException('invite-delete', $user, $invitation);
-            //verifica se ação ocorreu bem
-            CustomException::actionException($this->repository->deleteInvitation($invitation->idconvite));   
-
-            return response()->json(['message' => 'Convite Excluido'], 200);
-        }catch (Exception $e) {
-           return response()->json(['message' => $e->getMessage()], 403); 
+            if (Auth::guard('sanctum')->check()) {
+                $user = Auth::guard('sanctum')->user();
+                $invite = $this->service->getBySlug($slug);
+                if (!$invite) throw new HttpException(404, 'Convite não encontrado');
+                if ($invite->idusuario === $user->idusuario) {
+                    CustomException::authorizedActionException('invite-destroy', $user, $invite);
+                    CustomException::actionException($this->repository->deleteInvitation($invite->idconvite));
+                    return response()->json(['message' => 'Projeto Excluido'], 200);
+                }
+            }
+            
+            throw new HttpException(401, 'Autorização negada');
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 403);
         }
     }
         /**
