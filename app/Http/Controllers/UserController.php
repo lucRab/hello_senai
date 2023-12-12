@@ -142,15 +142,25 @@ class UserController extends Controller
         return InvitationResource::collection($invites);
     }
 
-    public function getChallengesPerfomed()
+    public function getChallengesPerfomed(Request $request)
     {
-        if (Auth::guard('sanctum')->check()) {
-            $user = Auth::guard('sanctum')->user()->idusuario;
-            $challenges = Challenge::with('project')->whereHas('project', function ($query) use ($user) {
-                $query->where('idusuario', $user);
-            })->get();
-            return ChallengeResource::collection($challenges);
+        try {
+            if (Auth::guard('sanctum')->check()) {
+                $teacher = $request->query('teacher');
+                $idTeacher = $this->repository->getByNickname($teacher);
+                if (!$idTeacher) {
+                    throw new HttpException(404, 'Professor não encontrado');
+                }
+                $user = Auth::guard('sanctum')->user()->idusuario;
+                $challenges = Challenge::with('project')->where('idusuario', $idTeacher->idusuario)->whereHas('project', function ($query) use ($user) {
+                    $query->where('idusuario', $user);
+                })->get();
+                return ChallengeResource::collection($challenges);
+            }
+        } catch (HttpException $th) {
+            return response()->json(['message' => $th->getMessage()], $th->getStatusCode());
         }
+        
     }
 
     public function getNotifications() 
