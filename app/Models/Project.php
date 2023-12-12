@@ -107,7 +107,7 @@ class Project extends Model
         };
         Log::error(self::class. "Error Delete", ['id Projeto: ' => $idProject,
         $GLOBALS['request'], Auth::guard('sanctum')->user()]);
-        return false;
+        throw new HttpException(403, 'Um erro ocorreu ao deletar o projeto, tente novamente mais tarde');
     }
 
     public function getProject(string $id) {
