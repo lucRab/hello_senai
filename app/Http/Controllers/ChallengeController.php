@@ -14,6 +14,7 @@ use Auth;
 use Exception;
 use Illuminate\Http\Request;
 use Validator;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class ChallengeController extends Controller
 {
@@ -29,9 +30,10 @@ class ChallengeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $challenges = $this->repository->with(['user'])->paginate();
+        $limit = $request->query('limit') ?? 15;
+        $challenges = $this->repository->with(['user'])->paginate($limit);
         return ChallengeResource::collection($challenges);
     }
 
@@ -41,19 +43,21 @@ class ChallengeController extends Controller
     public function store(StoreChallengeRequest $request)
     {
         try {
-            $user = Auth::guard('sanctum')->user();
-            $data = $request->validated();
-            CustomException::authorizedActionException('challenge-store', $user);
+            if (Auth::guard('sanctum')->check() && Auth::guard('sanctum')->user()->tokenCan('challenge-store')) {
+                $user = Auth::guard('sanctum')->user();
+                $data = $request->validated();
 
-            $userId = $user->idusuario;
-            $slug = $this->service->generateSlug($data['titulo']);
-            $data['slug'] = $slug;
-            $data['idusuario'] = $userId;
+                $userId = $user->idusuario;
+                $slug = $this->service->generateSlug($data['titulo']);
+                $data['slug'] = $slug;
+                $data['idusuario'] = $userId;
 
-            CustomException::actionException($this->repository->createChallenge($data), 'challenge-store');
-            return response()->json(['message' => 'Desafio criado'], 200);
-        } catch(Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 403);
+                $this->repository->createChallenge($data);
+                return response()->json(['message' => 'Desafio criado'], 200);
+            }
+            throw new HttpException(401, 'Autorização negada');
+        } catch(HttpException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
         }
     }
 
