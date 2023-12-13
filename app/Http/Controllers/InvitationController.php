@@ -79,19 +79,17 @@ class InvitationController extends Controller
             $invitation = $this->service->getBySlug($slug);
 
             if (!$invitation) {
-                throw new NotFoundHttpException('Convite não encontrado');
+                throw new HttpException(404, 'Convite não encontrado');
             }
             
             if (Auth::guard('sanctum')->check()) {
                 $user = Auth::guard('sanctum')->user();
                 if ($user->idusuario !== $invitation->idusuario) {
-                    return response()->json(['message' => 'Unauthorized'], 401);
+                    throw new HttpException(401, 'Autorização negada');
                 }
 
                 $data = $request->validated();
-                //verifica se o usuario tem autorizão para realizar a ação
                 CustomException::authorizedActionException('invite-update', $user, $invitation);
-                //pega os dados validados
                 $data['idconvite'] = $invitation->idconvite;
 
                 if ($data['titulo'] !== $invitation->titulo)
@@ -102,9 +100,9 @@ class InvitationController extends Controller
                 CustomException::actionException($this->repository->updateInvitation($data));       
                 return response()->json(['message' => 'Convite Atualizado'], 200);
             }
-            return response()->json(['message' => 'Unauthorized'], 401);
-        }catch (Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 403); 
+            throw new HttpException(401, 'Autorização negada');
+        }catch (HttpException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatusCode()); 
         }
     }
 
@@ -151,7 +149,7 @@ class InvitationController extends Controller
                 }
 
                 if (Auth::guard('sanctum')->id() === $inviteUser->idusuario) {
-                    return response()->json(['message' => 'Erro ao aceitar convite'], 403);
+                    return response()->json(['message' => 'Esse convite te pertence'], 403);
                 }
 
                 //Dados para salvar no banco

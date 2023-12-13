@@ -28,7 +28,7 @@ class ProjectResource extends JsonResource
             'slug' => $this->slug,
             'status' => ucfirst($this->status),
             'imagem' => Storage::url($this->imagem),
-            'autor' => ['nome' => $author->nome, 'apelido' => $author->apelido],
+            'autor' => ['nome' => $author->nome, 'apelido' => $author->apelido, 'avatar' => $author->avatar ? Storage::url($author->avatar) : null],
             'comentarios' => CommentResource::collection($comments) ?: []
         ];
 
@@ -45,6 +45,7 @@ class ProjectResource extends JsonResource
             return [
                 'nome' => $participant->nome,
                 'apelido' => $participant->apelido,
+                'avatar' => $participant->avatar ? Storage::url($participant->avatar) : null
             ];
         });
         return $filterData;

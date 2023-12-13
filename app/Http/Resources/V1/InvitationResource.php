@@ -5,6 +5,7 @@ namespace App\Http\Resources\V1;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Services\DateService;
+use Illuminate\Support\Facades\Storage;
 
 class InvitationResource extends JsonResource
 {
@@ -21,7 +22,7 @@ class InvitationResource extends JsonResource
             'descricao' => $this->descricao,
             'dataCriacao' => DateService::transformDateHumanReadable($this->data_convite),
             'slug' => $this->slug,
-            'autor' => ['nome' => $author->nome, 'apelido' => $author->apelido]
+            'autor' => ['nome' => $author->nome, 'apelido' => $author->apelido, 'avatar' => $author->avatar ? Storage::url($author->avatar) : null]
         ];
     }
 }

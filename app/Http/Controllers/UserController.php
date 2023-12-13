@@ -18,6 +18,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\DateService;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -68,6 +69,7 @@ class UserController extends Controller
         $data = [
             'nome' => $user->nome,
             'apelido' => $user->apelido,
+            'avatar' => $user->avatar ? Storage::url($user->avatar) : null,
             'criadoEm' => DateService::transformDateHumanReadable($user->data_criacao),
             'status' => $user->status
         ];
@@ -92,6 +94,23 @@ class UserController extends Controller
             return response()->json(['message' => 'Dados atualizados'], 200);
         }
         return response()->json(['message' => 'Unauthorized'], 401);
+    }
+
+    public function avatar(Request $request) {
+        try {
+            if (Auth::guard('sanctum')->check()) {
+                $user = Auth::guard('sanctum')->user();
+                $avatar = $request->validate([
+                'avatar' => 'required|image|max:1024'
+                ]);
+                $savedAvatar = Storage::disk('public')->putFile('avatars', $avatar['avatar']);
+                $this->repository->where('idusuario', $user->idusuario)->update(['avatar' => $savedAvatar]);
+                return response()->json(['message' => 'Avatar salvo com sucesso'], 200);
+            }
+            throw new HttpException(401, 'Autorização negada');
+        } catch (HttpException $th) {
+            return response()->json(['message' => $th->getMessage()], $th->getStatusCode());
+        }
     }
 
     public function disableAccount()

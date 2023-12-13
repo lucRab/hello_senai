@@ -10,6 +10,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\V1\ProjectResource;
 use Log;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class Invitation extends Model
 {
@@ -63,7 +64,7 @@ class Invitation extends Model
             return true;
         };
         Log::error(self::class. "Error Update", ['dados: ' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
-        return false;
+        throw new HttpException(403, 'Não foi possivel atualizar o convite');
     }
     /**
      * Método para deletar o convite

@@ -5,6 +5,7 @@ namespace App\Http\Resources\V1;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class NotificationsResource extends JsonResource
 {
@@ -22,7 +23,7 @@ class NotificationsResource extends JsonResource
         return [
             'mensagem' => $this->texto,
             'enviadoEm' => $formattedDate,
-            'remetente' => ['nome' => $user->nome, 'apelido' => $user->apelido]
+            'remetente' => ['nome' => $user->nome, 'apelido' => $user->apelido, $user->avatar ? Storage::url($user->avatar) : null]
         ];
     }
 }

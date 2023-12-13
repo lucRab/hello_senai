@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
 use App\Services\AuthService;
+use Illuminate\Support\Facades\Storage;
 
 class UserResource extends JsonResource
 {
@@ -26,7 +27,8 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'apelido' => $this->apelido,
             'dataCriacao' => $formattedDate,
-            'permissao' => $permission
+            'permissao' => $permission,
+            'avatar' => $this->avatar ? Storage::url($this->avatar) : null
         ];
     }
 

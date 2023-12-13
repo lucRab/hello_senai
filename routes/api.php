@@ -24,9 +24,9 @@ Route::group(['prefix' => 'v1'], function () {
     Route::get('usuario/{username}/convites', [UserController::class, 'getInvites']);
     Route::put('usuario/senha/modificar', [UserController::class, 'changePassoword']);
     Route::put('usuario/conta/desativar', [UserController::class, 'disableAccount']);
-
     Route::get('usuario/desafios/realizados', [UserController::class, 'getChallengesPerfomed']);
     Route::get('usuario/convites/notificacoes', [UserController::class, 'getNotifications']);
+    Route::put('avatar', [UserController::class, 'avatar']);
 
     Route::apiResource('professor', TeacherController::class);
 

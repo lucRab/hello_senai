@@ -5,6 +5,7 @@ namespace App\Http\Resources\V1;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class TeacherResource extends JsonResource
 {
@@ -23,6 +24,7 @@ class TeacherResource extends JsonResource
         $data = [
             'nome' => $user->nome,
             'apelido' => $user->apelido,
+            'avatar' => $user->avatar ? Storage::url($user->avatar) : null,
             'dataCriacao' => $formattedDate,
         ];
 

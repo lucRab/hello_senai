@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Services\DateService;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 
 class ChallengeResource extends JsonResource
 {
@@ -29,7 +30,7 @@ class ChallengeResource extends JsonResource
         ];
 
         if ($this->relationLoaded('user')) {
-            $data['autor'] = ['nome' => $user->nome, 'apelido' => $user->apelido];
+            $data['autor'] = ['nome' => $user->nome, 'apelido' => $user->apelido, 'avatar' => $user->avatar ? Storage::url($user->avatar) : null];
         }
 
         if ($this->relationLoaded('project')) {
