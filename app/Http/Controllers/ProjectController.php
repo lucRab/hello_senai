@@ -126,11 +126,13 @@ class ProjectController extends Controller
      */
     public function show($slug)
     {
-        $data = $this->service->getBySlug($slug);
-        if (!$data) {
-            return response()->json(['message' => 'Projeto Não Encontrado'], 404);
+        try {
+            $data = $this->service->getBySlug($slug);
+            return new ProjectResource($data);
+        } catch (HttpException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
         }
-        return new ProjectResource($data);
+       
     }
 
     /**
@@ -162,7 +164,7 @@ class ProjectController extends Controller
             }
 
             $this->repository->updateProject($dataUpdated);
-            return response()->json(['message' => 'Projeto Atualizado'], 200);
+            return response()->json($data, 200);
         } catch (HttpException $e) {
             return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
         }
