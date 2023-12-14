@@ -52,11 +52,11 @@ class ProjectController extends Controller
         $limit = $request->query('limit') ?? 7;
 
         if (empty($queryItems)) {
-            $projects = $this->repository->with(['user', 'comments.user', 'comments.reply.user'])->orderBy('data_projeto', $order)->paginate($limit);
+            $projects = $this->repository->with(['user', 'comments.user', 'comments.reply.user'])->where('status', '1')->orderBy('data_projeto', $order)->paginate($limit);
             return ProjectResource::collection($projects);
         }
 
-        $projects = $this->repository->with(['user', 'comments.user', 'comments.reply.user'])->where($queryItems)->orderBy('data_projeto', $order)->paginate($limit);
+        $projects = $this->repository->with(['user', 'comments.user', 'comments.reply.user'])->where($queryItems)->where('status', '1')->orderBy('data_projeto', $order)->paginate($limit);
         return ProjectResource::collection($projects->appends($request->query()));
     }
 
@@ -118,6 +118,13 @@ class ProjectController extends Controller
     {
         try {
             $data = $this->service->getBySlug($slug);
+            if (!$data) throw new HttpException(404, 'Projeto não encontrado');
+            if ($data->status === 0) {
+                if (Auth::guard('sanctum')->check() && Auth::guard('sanctum')->user()->idusuario === $data->idusuario) {
+                    return new ProjectResource($data);
+                }
+                throw new HttpException(404, 'Projeto não encontrado');
+            }
             return new ProjectResource($data);
         } catch (HttpException $e) {
             return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
@@ -160,11 +167,7 @@ class ProjectController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($slug)
-    {
+    public function disable($slug) {
         try {
             if (Auth::guard('sanctum')->check()) {
                 $user = Auth::guard('sanctum')->user();
@@ -172,14 +175,32 @@ class ProjectController extends Controller
                 if (!$project) throw new HttpException(404, 'Projeto não encontrado');
                 if ($project->idusuario === $user->idusuario) {
                     CustomException::authorizedActionException('project-destroy', $user, $project);
-                    CustomException::actionException($this->repository->deleteProject($project->idprojeto));
-                    return response()->json(['message' => 'Projeto Excluido'], 200);
+                    $this->repository->disableProject($project->idprojeto);
+                    return response()->json(['message' => 'Projeto Desativado'], 200);
                 }
             }
-            
             throw new HttpException(401, 'Autorização negada');
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 403);
+        } catch (HttpException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
+        }
+    }
+
+    public function restore($slug) {
+        try {
+            if (Auth::guard('sanctum')->check()) {
+                $user = Auth::guard('sanctum')->user();
+                $project = $this->service->getBySlug($slug);
+                if (!$project) throw new HttpException(404, 'Projeto não encontrado');
+                if ($project->status === 1) throw new HttpException(401, 'O projeto não está desativado');
+                if ($project->idusuario === $user->idusuario) {
+                    CustomException::authorizedActionException('project-update', $user, $project);
+                    $this->repository->restoreProject($project->idprojeto);
+                    return response()->json(['message' => 'Projeto Reativado'], 200);
+                }
+            }
+            throw new HttpException(401, 'Autorização negada');
+        } catch (HttpException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
         }
     }
 
@@ -189,7 +210,7 @@ class ProjectController extends Controller
         $dataProject = [
             'nome_projeto'  => $data['nomeProjeto'],
             'descricao'     => $data['descricao'],
-            'status'        => $data['status'],
+            'projeto_status'        => $data['projetoStatus'],
             'github' => $data['github']
         ];
 
@@ -199,10 +220,8 @@ class ProjectController extends Controller
 
         //verifica se a uma imagem nos dados enviado
         if(gettype($data['imagem']) !== 'string') {
-            //pega a extenção da imegem
             $extension = $data['imagem']->getClientOriginalExtension();
             $image = Storage::disk('public')->putFile('projects', $data['imagem']);
-            //salva a imagem e pega o caminho onde ela foi salva
             $dataProject['imagem'] = $image;
         }
         return $dataProject;
