@@ -19,7 +19,7 @@ class Project extends Model
         'idusuario',
         'descricao',
         'nomeProjeto',
-        'status',
+        'projetoStatus',
         'slug',
         'desafio'
     ];
@@ -99,31 +99,30 @@ class Project extends Model
      * @param [string] $idProject
      * @return bool
      */
-    public function deleteProject($idProject)
+    public function disableProject($idProject)
     {
-        if ($this->where('idprojeto', '=', $idProject)->delete())
+        if (!$this->where('idprojeto', '=', $idProject)->update(['status' => 0]))
         {
-            return true;
+            Log::error(self::class. "Error Disable", ['id Projeto: ' => $idProject,
+            $GLOBALS['request'], Auth::guard('sanctum')->user()]);
+            throw new HttpException(403, 'Um erro ocorreu ao desativar o projeto, tente novamente mais tarde');
         };
-        Log::error(self::class. "Error Delete", ['id Projeto: ' => $idProject,
-        $GLOBALS['request'], Auth::guard('sanctum')->user()]);
-        throw new HttpException(403, 'Um erro ocorreu ao deletar o projeto, tente novamente mais tarde');
+    }
+
+    public function restoreProject($idProject)
+    {
+        if (!$this->where('idprojeto', '=', $idProject)->update(['status' => 1]))
+        {
+            Log::error(self::class. "Error Disable", ['id Projeto: ' => $idProject,
+            $GLOBALS['request'], Auth::guard('sanctum')->user()]);
+            throw new HttpException(403, 'Um erro ocorreu ao reativar o projeto, tente novamente mais tarde');
+        };
     }
 
     public function getProject(string $id) {
         return $this->where('idprojeto', '=', $id)->get()->toArray();
     }
-    /**
-     * Método para inserir o link do github do projeto
-     *
-     * @param [array] $data
-     * @return bool
-     */
-    public function linkGit($data) {
-        if(DB::table('link')->insertGetId($data)) return true;
-        Log::error(self::class. "Error Insert", ['Dados: ' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
-        return false;
-    }
+
     /**
      * Método para denuciar o projeto
      *

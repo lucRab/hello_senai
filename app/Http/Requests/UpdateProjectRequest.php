@@ -24,7 +24,7 @@ class UpdateProjectRequest extends FormRequest
         return [
             'nomeProjeto' => 'required|min:3|max:80',
             'descricao' => 'required',
-            'status' => 'required',
+            'projetoStatus' => 'required',
             'link' => 'nullable|regex:/github.com/',
             'imagem' => 'nullable',
             'participantes' => 'nullable',
@@ -35,7 +35,8 @@ class UpdateProjectRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'nome_projeto' => $this->nomeProjeto
+            'nome_projeto' => $this->nomeProjeto,
+            'projeto_status' => $this->projetoStatus
         ]);
     }
 }

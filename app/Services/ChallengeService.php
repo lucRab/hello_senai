@@ -3,6 +3,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
 use App\Models\Challenge;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class ChallengeService implements ISlugService
 {
@@ -18,6 +19,6 @@ class ChallengeService implements ISlugService
       {
         return $data;
       };
-      return null;
+      throw new HttpException(404, 'Desafio não encontrado');
     }
 }

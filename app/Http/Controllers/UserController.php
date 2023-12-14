@@ -147,7 +147,12 @@ class UserController extends Controller
         if (!$user) {
             return response()->json(['message' => 'Usuário não encontrado'], 404);
         }
-        $projects = $user->project()->with(['participants', 'user'])->paginate();
+        $projects = $user->project()->with(['user'])->where('status', '1')->paginate();
+
+        if (Auth::guard('sanctum')->check() && Auth::guard('sanctum')->user()->idusuario === $user->idusuario) {
+            $projects = $user->project()->with(['user'])->paginate();
+        }
+
         return ProjectResource::collection($projects);
     }
 

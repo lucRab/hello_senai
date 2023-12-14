@@ -11,7 +11,7 @@ class UpdateChallengeRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,8 +22,8 @@ class UpdateChallengeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'titulo' => 'nullble|min:3|max:45',
-            'descricao' => 'nullble|min:3',
+            'titulo' => 'required|min:3|max:45',
+            'descricao' => 'required|min:3',
             'imagem' => 'nullable|image|max:1024',
         ];
     }

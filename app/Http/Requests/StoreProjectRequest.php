@@ -25,7 +25,7 @@ class StoreProjectRequest extends FormRequest
             'nomeProjeto' => 'required|min:3|max:80',
             'descricao' => 'required',
             'github' => 'required|regex:/github.com/',
-            'status' => 'required',
+            'projetoStatus' => 'required',
             'imagem' => 'required|image|max:1024',
             'participantes' => 'nullable',
             'desafio' => 'nullable'
@@ -35,7 +35,8 @@ class StoreProjectRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'nome_projeto' => $this->nomeProjeto
+            'nome_projeto' => $this->nomeProjeto,
+            'projeto_status' => $this->projetoStatus
         ]);
     }
 }

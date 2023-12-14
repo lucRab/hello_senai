@@ -27,7 +27,8 @@ class ProjectResource extends JsonResource
             'status' => $this->status,
             'slug' => $this->slug,
             'github' => $this->github,
-            'status' => ucfirst($this->status),
+            'projetoStatus' => ucfirst($this->projeto_status),
+            'status' => $this->status,
             'imagem' => Storage::url($this->imagem),
             'autor' => ['nome' => $author->nome, 'apelido' => $author->apelido, 'avatar' => $author->avatar ? Storage::url($author->avatar) : null],
             'comentarios' => CommentResource::collection($comments) ?: []

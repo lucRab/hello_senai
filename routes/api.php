@@ -28,18 +28,20 @@ Route::group(['prefix' => 'v1'], function () {
     Route::get('usuario/convites/notificacoes', [UserController::class, 'getNotifications']);
     Route::put('avatar', [UserController::class, 'avatar']);
 
-    Route::apiResource('professor', TeacherController::class);
+    Route::post('professor', [TeacherController::class, 'store']);
+    Route::put('professor/autenticar', [TeacherController::class, 'authenticate']);
+    Route::get('professor', [TeacherController::class, 'index']);
     Route::get('professores/invalidos', [TeacherController::class, 'unauthenticatedTeachers']);
 
     Route::apiResource('projeto', ProjectController::class);
     Route::post('projeto/{slug}/comentario', [ProjectController::class, 'comment']);
     Route::post('projeto/{slug}/denuncia', [ProjectController::class,'report']);
+    Route::put('projeto/{slug}/desativar', [ProjectController::class, 'disable']);
+    Route::put('projeto/{slug}/reativar', [ProjectController::class, 'restore']);
     
     Route::apiResource('convite', InvitationController::class);    
 
     Route::apiResource('desafio', ChallengeController::class);
-    Route::put('desafio/{desafio}', [ChallengeController::class,'update'])->name('desafio.update');
-    Route::delete('desafio/{desafio}', [ChallengeController::class,'destroy'])->name('desafio.delete'); 
 
     Route::apiResource('denuncia', DenounceController::class);
 
