@@ -12,6 +12,7 @@ use Log;
 class Teacher extends User
 {
     protected $table = "professor";
+    const UPDATED_AT = 'atualizado_em';
 
     public function challenge()
     {
@@ -31,6 +32,13 @@ class Teacher extends User
             return false;
         }
         return true;
+    }
+
+    public function authorizeTeacher($idTeacher) 
+    {
+        if (!Teacher::where('idusuario', $idTeacher)->update(['autenticado' => 1])) {
+            throw new HttpException(403, 'Não foi possivel autenticar o professor');
+        }
     }
 
     public function getUnauthenticatedTeachers() {

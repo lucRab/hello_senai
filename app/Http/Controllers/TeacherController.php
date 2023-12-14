@@ -9,6 +9,7 @@ use App\Http\Requests\StoreTeacherRequest;
 use App\Http\Requests\UpdateTeacherRequest;
 use App\Http\Resources\V1\TeacherResource;
 use App\Models\Teacher;
+use App\Models\User;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use App\Http\Resources\V1\UserResource;
 
@@ -69,19 +70,23 @@ class TeacherController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(Teacher $teacher)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateTeacherRequest $request, Teacher $teacher)
+    public function authenticate(UpdateTeacherRequest $request)
     {
-        //
+        $data = $request->validated();
+        try {
+            if (Auth::guard('sanctum')->check() && Auth::guard('sanctum')->user()->tokenCan('project-store')) {
+                $user = User::where('email', $data['email'])->first();
+                if (!$user) throw new HttpException(404, 'Usuário não encontrado');
+                $this->repository->authorizeTeacher($user->idusuario);
+                return response()->json(['message' => 'Professor autenticado'], 200);
+            }
+            throw new HttpException(401, 'Autorização negada');
+        } catch (HttpException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
+        }
+        
     }
 
     /**
