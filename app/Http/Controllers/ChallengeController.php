@@ -86,22 +86,33 @@ class ChallengeController extends Controller
      */
     public function update(UpdateChallengeRequest $request, $slug)
     {
-        $desafio = $this->service->getBySlug($slug);
-        $user = Auth::guard('sanctum')->user();
         try {
-            CustomException::authorizedActionException('challenge-update', $user, $desafio);
+            if (Auth::guard('sanctum')->check() && Auth::guard('sanctum')->user()->tokenCan('challenge-update')) {
+                $user = Auth::guard('sanctum')->user();
+                $challenge = $this->service->getBySlug($slug);
+                
+                if ($challenge->idusuario !== $user->idusuario) {
+                    throw new HttpException(401, 'Autorização negada');
+                }
 
-            $data = $request->all();
-            $idchallenge = $data['iddesafio'];
-            if(!empty($data['imagem'])) {
-                $extension = $data['imagem']->getClientOriginalExtension();
-                $img = $data['imagem']->storeAs('projects', $data['slug'] . '.' . $extension);
+                $data = $request->validated();
+                $idChallenge = $challenge->iddesafio;
+                
+                if ($data['titulo'] !== $challenge->titulo) {
+                    $data['slug'] = $this->service->generateSlug($data['titulo']);
+                }
+
+                if(!empty($data['imagem'])) {
+                    $image = Storage::disk('public')->putFile('challenges', $data['imagem']);
+                    $data['imagem'] = $image;
+                }
+
+                $this->repository->updateChallenge($data, $idChallenge);
+                return response()->json(['message' => 'Desafio atualizado'], 200);
             }
-            $challenge = $this->processingDataInvite($data);
-
-            CustomException::actionException($this->repository->updateChallenge(Auth::guard('sanctum')->id(), $idchallenge, $challenge, $img));
-        } catch(Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 403);
+            throw new HttpException(401, 'Autorização negada');
+        } catch(HttpException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
         }
     }
 

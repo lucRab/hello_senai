@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Log;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class Challenge extends Model
 {
@@ -23,6 +24,7 @@ class Challenge extends Model
         'idconvite',
         'imagem',
     ];
+    const UPDATED_AT = 'atualizado_em';
 
     public function user()
     {
@@ -55,22 +57,11 @@ class Challenge extends Model
      * @param [array] $data
      * @return bool
      */
-    public function updateChallenge(string $idprofessor, string $idconvite, $data, string $img = null)
+    public function updateChallenge($data, $idChallenge)
     {
-
-        if(DB::table('convite as c')
-        ->join('desafio as d', 'd.idconvite', '=', 'c.idconvite')
-        ->where('idprofessor', '=', $idprofessor, 'and', 'idconvite', '=', $idconvite)
-        ->update($data)) {
-            if($img != null) {
-                $this->where('idprofessor', '=', $idprofessor, 'and', 'idconvite', '=', $idconvite)->update(['imagem' => $img]);
-            }
-            return true;
+        if (!Challenge::where('iddesafio', $idChallenge)->update($data)) {
+            throw new HttpException(403, 'Não foi possível atualizar o desafio');
         }
-        Log::error(self::class . "Error Delete", ['idConvite: ' => $idconvite,
-                                                'idprofessor' => $idprofessor,
-                                                'dados' => $data, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
-        return false;
     }
     /**
      * Método para deletar o desafio
