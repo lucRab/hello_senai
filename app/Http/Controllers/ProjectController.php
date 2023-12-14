@@ -94,10 +94,7 @@ class ProjectController extends Controller
                 $project['iddesafio'] = $challenge->iddesafio;
             }
 
-            //verifica se a ação feita não deu erro
             CustomException::actionException($projectId = $this->repository->createProject($project));
-            //Pega os dados dos participantes do clone dos dados recebidos
-            //verifica se a participantes
             if (!empty($dataClone['participantes'])) {
                 $participants = $dataClone['participantes'];
                 try {
@@ -108,13 +105,6 @@ class ProjectController extends Controller
                     return response()->json(['message' => $message->getMessage()], 404);
                 }
             }
-            //cria um array para inserir o link
-            $link = [
-                'link' => $data['link'],
-                'idprojeto' => $projectId
-            ];
-            //verifica se a ação feita não deu erro
-            CustomException::actionException($this->repository->linkGit($link));
             return response()->json(['message' => 'Projeto Criado'], 200);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 403);
@@ -200,6 +190,7 @@ class ProjectController extends Controller
             'nome_projeto'  => $data['nomeProjeto'],
             'descricao'     => $data['descricao'],
             'status'        => $data['status'],
+            'github' => $data['github']
         ];
 
         if (!empty($data['slug'])) {

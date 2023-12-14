@@ -24,8 +24,8 @@ class StoreProjectRequest extends FormRequest
         return [
             'nomeProjeto' => 'required|min:3|max:80',
             'descricao' => 'required',
+            'github' => 'required|regex:/github.com/',
             'status' => 'required',
-            'link' => 'required|regex:/github.com/',
             'imagem' => 'required|image|max:1024',
             'participantes' => 'nullable',
             'desafio' => 'nullable'

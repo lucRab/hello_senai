@@ -30,8 +30,8 @@ class AuthService
 
     public function isTeacher(int $userId)
     {
-        $userRule = DB::table('professor')->where('idusuario', $userId)->exists();
-        if ($userRule) return true;
+        $userRule = DB::table('professor')->where('idusuario', $userId)->first();
+        if ($userRule) return $userRule;
         return false;
     }
 }

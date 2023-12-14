@@ -11,6 +11,8 @@ use App\Services\AuthService;
 use App\Http\Resources\V1\UserResource;
 use App\Http\Requests\StoreTeacherRequest;
 use Log;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+
 
 class AuthController extends Controller
 {
@@ -45,49 +47,57 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        Log::info(self::class. ' Requisição de login', ['dados' => $request->only('email')]);
-        $credentials = Auth::attempt($request->only('email', 'senha'));
-        $abilities = $this->getAbilities();
-        
-        if ($credentials)
-        {
-            $userId = Auth::user()->idusuario;
-            $status = $request->user()->status;
+        try {
+            Log::info(self::class. ' Requisição de login', ['dados' => $request->only('email')]);
+            $credentials = Auth::attempt($request->only('email', 'senha'));
+            $abilities = $this->getAbilities();
             
-            if ($this->service->isAdm($userId))
+            if ($credentials)
             {
-                Log::info(self::class. " Login realizado",['dados' => $request->all(),
-                "browser" => $_SERVER["HTTP_USER_AGENT"],
-                'URI' => $_SERVER["REQUEST_URI"],
-                'Server' => $_SERVER["SERVER_SOFTWARE"]]);
-                if ($status == 'inativo') {
-                    $request->user()->update(['status' => 'ativo']);
-                }
-                return $request->user()->createToken('token');
-            }
-            else
-            {
-                if ($this->service->isTeacher($userId))
+                $userId = Auth::user()->idusuario;
+                $status = $request->user()->status;
+                
+                if ($this->service->isAdm($userId))
                 {
-                    $abilities[] = 'challenge-store';
-                    $abilities[] = 'challenge-update';
-                    $abilities[] = 'challenge-destroy';
+                    Log::info(self::class. " Login realizado",['dados' => $request->all(),
+                    "browser" => $_SERVER["HTTP_USER_AGENT"],
+                    'URI' => $_SERVER["REQUEST_URI"],
+                    'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+                    if ($status == 'inativo') {
+                        $request->user()->update(['status' => 'ativo']);
+                    }
+                    return $request->user()->createToken('token');
                 }
-                Log::info(self::class. " Login realizado",['dados' => $request->all(),
-                "browser" => $_SERVER["HTTP_USER_AGENT"],
-                'URI' => $_SERVER["REQUEST_URI"],
-                'Server' => $_SERVER["SERVER_SOFTWARE"]]);
-                if ($status == 'inativo') {
-                    $request->user()->update(['status' => 'ativo']);
+                else
+                {
+                    if ($teacher = $this->service->isTeacher($userId))
+                    {
+                        $abilities[] = 'challenge-store';
+                        $abilities[] = 'challenge-update';
+                        $abilities[] = 'challenge-destroy';
+                        if ($teacher->autenticado === 0) {
+                            throw new HttpException(401, 'Professor ainda não autenticado');
+                        }
+                    }
+                    Log::info(self::class. " Login realizado",['dados' => $request->all(),
+                    "browser" => $_SERVER["HTTP_USER_AGENT"],
+                    'URI' => $_SERVER["REQUEST_URI"],
+                    'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+                    if ($status == 'inativo') {
+                        $request->user()->update(['status' => 'ativo']);
+                    }
+                    return $request->user()->createToken('token', $abilities);
                 }
-                return $request->user()->createToken('token', $abilities);
+                throw new HttpException(403, 'Dados Incorretos');
             }
+        } catch (HttpException $e) {
+            Log::error(self::class. " Error Login",['dados' => $request->all(),
+            "browser" => $_SERVER["HTTP_USER_AGENT"],
+            'URI' => $_SERVER["REQUEST_URI"],
+            'Server' => $_SERVER["SERVER_SOFTWARE"]]);
+            return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
         }
-        Log::error(self::class. " Error Login",['dados' => $request->all(),
-        "browser" => $_SERVER["HTTP_USER_AGENT"],
-        'URI' => $_SERVER["REQUEST_URI"],
-        'Server' => $_SERVER["SERVER_SOFTWARE"]]);
-        return response()->json("Dados Incorretos", 403);
+        
     }
 
     public function profile()

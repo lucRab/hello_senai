@@ -32,4 +32,8 @@ class Teacher extends User
         }
         return true;
     }
+
+    public function getUnauthenticatedTeachers() {
+
+    }
 }

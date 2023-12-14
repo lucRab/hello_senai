@@ -9,6 +9,8 @@ use App\Http\Requests\StoreTeacherRequest;
 use App\Http\Requests\UpdateTeacherRequest;
 use App\Http\Resources\V1\TeacherResource;
 use App\Models\Teacher;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use App\Http\Resources\V1\UserResource;
 
 class TeacherController extends Controller
 {
@@ -46,6 +48,24 @@ class TeacherController extends Controller
         }catch (\Exception $e) {
                 return response()->json(['message' => $e->getMessage()], 403); 
         } 
+    }
+
+    public function unauthenticatedTeachers() 
+    {
+        try {
+            if (Auth::guard('sanctum')->check() && Auth::guard('sanctum')->user()->tokenCan('project-store')) {
+                $teachers = $this->repository
+                ->where('autenticado', '0')
+                ->join('usuario', 'professor.idusuario', '=', 'usuario.idusuario')
+                ->select('usuario.*')
+                ->get();
+
+                return UserResource::collection($teachers);
+            }
+            throw new HttpException(401, 'Autorização negada');
+        } catch (HttpException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
+        }
     }
 
     /**

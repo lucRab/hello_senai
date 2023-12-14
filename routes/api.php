@@ -29,6 +29,7 @@ Route::group(['prefix' => 'v1'], function () {
     Route::put('avatar', [UserController::class, 'avatar']);
 
     Route::apiResource('professor', TeacherController::class);
+    Route::get('professores/invalidos', [TeacherController::class, 'unauthenticatedTeachers']);
 
     Route::apiResource('projeto', ProjectController::class);
     Route::post('projeto/{slug}/comentario', [ProjectController::class, 'comment']);
