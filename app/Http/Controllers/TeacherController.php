@@ -8,18 +8,26 @@ use Illuminate\Http\Request;
 use App\Http\Requests\StoreTeacherRequest;
 use App\Http\Requests\UpdateTeacherRequest;
 use App\Http\Resources\V1\TeacherResource;
+use App\Http\Resources\V1\ChallengeResource;
 use App\Models\Teacher;
 use App\Models\User;
+use App\Models\Challenge;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use App\Http\Resources\V1\UserResource;
+use App\Services\AuthService;
 
 class TeacherController extends Controller
 {
+    private $user;
+    private $authService;
+
     public function __construct(
         protected Teacher $repository
     )
     {
-        $this->middleware('auth:sanctum')->only(['store', 'update', 'destroy']);
+        $this->middleware('auth:sanctum')->only(['unauthenticatedTeachers', 'authenticate']);
+        $this->user = new User();
+        $this->authService = new AuthService();
     }
     /**
      * Display a listing of the resource.
@@ -38,16 +46,14 @@ class TeacherController extends Controller
     public function store(StoreTeacherRequest $request)
     {   
         try {
-            $user = Auth::guard('sanctum')->user();
-            CustomException::authorizedActionException('teacher-store', $user);
-            
             $data = $request->validated();
             $data['senha'] = bcrypt($request->senha);
-            CustomException::actionException($this->repository->createTeacher($data));
+            $idUser = $this->user->createUser($data);
+            $this->repository->createTeacher($idUser);
 
-            return response()->json(['message' => 'Professor Criado Com Sucesso', 200]);
-        }catch (\Exception $e) {
-                return response()->json(['message' => $e->getMessage()], 403); 
+            return response()->json(['message' => 'Registro feito com sucesso', 200]);
+        }catch (HttpException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatusCode()); 
         } 
     }
 
@@ -86,14 +92,22 @@ class TeacherController extends Controller
         } catch (HttpException $e) {
             return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
         }
-        
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Teacher $teacher)
+    public function getChallenges(string $username)
     {
-        //
+        $getUser = User::where('apelido', '=', $username)->first();
+        if (empty($getUser)) {
+            return response()->json(['message' => 'Usuário não encontrado'], 404);
+        }
+        $userId = $getUser->idusuario;
+
+        if (!$this->authService->isTeacher($userId)) {
+            return response()->json(['message' => 'Usuário não é professor'], 403);
+        }
+        $challenges = Challenge::with('user')->where('desafio.idusuario', '=', $userId)
+        ->orderBy('desafio.data_criacao', 'DESC')
+        ->paginate();
+        return ChallengeResource::collection($challenges);
     }
 }
