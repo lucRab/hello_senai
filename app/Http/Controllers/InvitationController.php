@@ -38,7 +38,9 @@ class InvitationController extends Controller
         $limit = $request->query('limit') ?? 15;
 
         if (empty($queryItems)) {
-            $invitations = $this->repository->with('user')->orderBy('data_convite', $order)->paginate($limit);
+            $invitations = $this->repository->with(['user', 'participants' => function ($query) {
+                $query->with('user')->where('status', 1);
+            }])->orderBy('data_convite', $order)->paginate($limit);
             return InvitationResource::collection($invitations);
         }
 

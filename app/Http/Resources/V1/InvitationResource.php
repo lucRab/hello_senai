@@ -17,12 +17,27 @@ class InvitationResource extends JsonResource
     public function toArray(Request $request): array
     {
         $author = $this->whenLoaded('user');
-        return [
+
+        
+        $data =  [
             'titulo' => $this->titulo,
             'descricao' => $this->descricao,
             'dataCriacao' => DateService::transformDateHumanReadable($this->data_convite),
             'slug' => $this->slug,
             'autor' => ['nome' => $author->nome, 'apelido' => $author->apelido, 'avatar' => $author->avatar ? Storage::url($author->avatar) : null]
         ];
+
+        if ($this->relationLoaded('participants')) {
+            $data['participantes'] = $this->participants->map(function ($participant) {
+                return [
+                    'nome' => $participant->user->nome,
+                    'apelido' => $participant->user->apelido,
+                    'avatar' => $participant->user->avatar
+                ];
+            });
+        }
+
+        return $data;
     }
+
 }

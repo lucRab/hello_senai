@@ -38,6 +38,11 @@ class Invitation extends Model
         return $this->hasMany(Challenge::class, 'idconvite');
     }
 
+    public function participants()
+    {
+        return $this->hasMany(Email::class, 'idconvite', 'idconvite');
+    }
+
     /**
      * Método para criar projeto
      * @param [array] $data
