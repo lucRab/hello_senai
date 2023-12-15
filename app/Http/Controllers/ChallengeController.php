@@ -64,21 +64,15 @@ class ChallengeController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $username)
+    public function show(string $slug)
     {
-        $getUser = User::where('apelido', '=', $username)->first();
-        if (empty($getUser)) {
-            return response()->json(['message' => 'Usuário não encontrado'], 404);
+        try {
+            $data = $this->service->getBySlug($slug);
+            if (!$data) throw new HttpException(404, 'Desafio não encontrado');
+            return new ChallengeResource($data);
+        } catch (HttpException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
         }
-        $userId = $getUser->idusuario;
-
-        if (!$this->authService->isTeacher($userId)) {
-            return response()->json(['message' => 'Usuário não é professor'], 403);
-        }
-        $challenges = $this->repository->with('user')->where('desafio.idusuario', '=', $userId)
-        ->orderBy('desafio.data_criacao', 'DESC')
-        ->paginate();
-        return ChallengeResource::collection($challenges);
     }
 
     /**
