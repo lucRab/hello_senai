@@ -93,8 +93,7 @@ class Challenge extends Model
     public function getbySlug($slug)
     {
         $get = DB::table('desafio as d')
-        ->join('convite as c', 'd.idconvite', '=', 'c.idconvite')
-        ->where('c.slug', '=', $slug)->get('d.iddesafio')->first();
+        ->where('d.slug', '=', $slug)->first();
         return $get;
     }
 

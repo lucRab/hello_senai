@@ -86,6 +86,7 @@ class ProjectController extends Controller
             $project = $this->processingData($data, $slug);
             $project['idusuario'] = $user->idusuario;
 
+            
             if (!empty($data['desafio'])) {
                 $challenge = $this->challenge->getBySlug($data['desafio']);
                 if (!$challenge) {
@@ -93,8 +94,8 @@ class ProjectController extends Controller
                 }
                 $project['iddesafio'] = $challenge->iddesafio;
             }
-
-            CustomException::actionException($projectId = $this->repository->createProject($project));
+            
+            $projectId = $this->repository->createProject($project);
             if (!empty($dataClone['participantes'])) {
                 $participants = $dataClone['participantes'];
                 try {

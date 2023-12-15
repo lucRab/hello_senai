@@ -19,17 +19,14 @@ class CustomException {
         if(Auth::guard('sanctum')->check() ) {
             if($inviatation == null) {
                 if(!$tokenUser->tokenCan($action)) { 
-                    Mails::sendLogError('Erro de ação', 'Erro gerado pelo usuario '.Auth::guard('sanctum')->user()['nome']. ' após tenta realizar a ação de '. $action);
                     throw new \Exception('Unauthorized');
                 }
             }else {
                 if(!$tokenUser->tokenCan($action) && !$tokenUser->apelido == $inviatation->user->apelido) {   
-                    Mails::sendLogError('Erro de ação', 'Erro gerado pelo usuario '.Auth::guard('sanctum')->user()['nome']. ' após tenta realizar a ação de '. $action);  
                     throw new \Exception('Unauthorized');
                 }
             }
         }else {
-            Mails::sendLogError('Erro de ação', 'Erro gerado pelo usuario '.Auth::guard('sanctum')->user()['nome']. ' após tenta realizar a ação de '. $action);
             throw new \Exception('Unauthorized');
         }
        

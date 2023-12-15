@@ -51,23 +51,24 @@ class InvitationController extends Controller
      */
     public function store(StoreInvitationRequest $request) {
         //Pega o usuario  logado
-        $user = Auth::guard('sanctum')->user();
         try {
-            //verifica se o usuario tem autorizão para realizar a ação
-            CustomException::authorizedActionException('invite-store', $user);
-            //pega os dados validados
-            $data = $request->validated();
-            $userId = $user->idusuario;
-            //cria um apelido pro convite
-            $slug = $this->service->generateSlug($data['titulo']);
+            if (Auth::guard('sanctum')->check()) {
+                $user = Auth::guard('sanctum')->user();
+                //pega os dados validados
+                $data = $request->validated();
+                $userId = $user->idusuario;
+                //cria um apelido pro convite
+                $slug = $this->service->generateSlug($data['titulo']);
 
-            $data['idusuario'] = $userId;
-            $data['slug'] = $slug;
-            //verifica se ação ocorreu bem
-            CustomException::actionException($this->repository->createInvitation($data));  
-            return response()->json(['message' => 'Convite Criado'], 200);
-        }catch (Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 403); 
+                $data['idusuario'] = $userId;
+                $data['slug'] = $slug;
+                //verifica se ação ocorreu bem
+                $this->repository->createInvitation($data);  
+                return response()->json(['message' => 'Convite Criado'], 200);
+            }
+            throw new HttpException(401, 'Autorização negada');
+        }catch (HttpException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatusCode()); 
         }
     }
 

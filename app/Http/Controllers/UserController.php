@@ -101,7 +101,7 @@ class UserController extends Controller
             if (Auth::guard('sanctum')->check()) {
                 $user = Auth::guard('sanctum')->user();
                 $avatar = $request->validate([
-                'avatar' => 'required|image|max:1024'
+                    'avatar' => 'required|image|max:1024'
                 ]);
                 $savedAvatar = Storage::disk('public')->putFile('avatars', $avatar['avatar']);
                 $this->repository->where('idusuario', $user->idusuario)->update(['avatar' => $savedAvatar]);

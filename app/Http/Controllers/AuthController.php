@@ -48,15 +48,19 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         try {
-            Log::info(self::class. ' Requisição de login', ['dados' => $request->only('email')]);
+            $request->validate([
+                'email' => 'required|email|max:255|regex:/ba.estudante.senai\.br/',
+                'senha' => 'required|min:6|max:255'
+            ]);
+
             $credentials = Auth::attempt($request->only('email', 'senha'));
             $abilities = $this->getAbilities();
-            
+
             if ($credentials)
             {
                 $userId = Auth::user()->idusuario;
                 $status = $request->user()->status;
-                
+
                 if ($this->service->isAdm($userId))
                 {
                     Log::info(self::class. " Login realizado",['dados' => $request->all(),
@@ -88,8 +92,12 @@ class AuthController extends Controller
                     }
                     return $request->user()->createToken('token', $abilities);
                 }
-                throw new HttpException(403, 'Dados Incorretos');
+
+                Log::info(self::class. ' Requisição de login', ['dados' => $request->only('email')]);
+                $credentials = Auth::attempt($request->only('email', 'senha'));
+                $abilities = $this->getAbilities();
             }
+            throw new HttpException(403, 'Dados Incorretos');
         } catch (HttpException $e) {
             Log::error(self::class. " Error Login",['dados' => $request->all(),
             "browser" => $_SERVER["HTTP_USER_AGENT"],
