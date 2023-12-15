@@ -18,12 +18,14 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\DateService;
+use App\Services\AuthService;
 use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
     private $project;
     private $dateService;
+    private $authService;
 
     public function __construct(
         protected User $repository,
@@ -31,6 +33,7 @@ class UserController extends Controller
         $this->middleware('auth:sanctum')->only(['update', 'destroy']);
         $this->project = new Project();
         $this->dateService = new DateService();
+        $this->authService = new AuthService();
     }
 
     /**
@@ -55,8 +58,9 @@ class UserController extends Controller
     {
         $data = $request->validated();
         $data['senha'] = bcrypt($request->senha);
-
-        $this->repository->createUser($data);
+        $user = $this->repository->createUser($data);
+        $token = $user->createToken('token', $this->authService->abilities());
+        return $token;
     }
 
     /**

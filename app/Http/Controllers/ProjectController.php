@@ -65,50 +65,49 @@ class ProjectController extends Controller
      */
     public function store(StoreProjectRequest $request)
     {
-        //pega o usuario logado
-        $user = Auth::guard('sanctum')->user();
         try {
-            //verifica se o usuario tem autorização para realizar essa ação
-            CustomException::authorizedActionException('project-store', $user);
-
-            //valida os dados recebido
-            $data = $request->validated();
-            //clona os dados recebidos
-            $dataClone = $data;
-            //retira os dados dos participantes para fazer o insert no banco
-            if (!empty($data['participantes'])) {
-                unset($data['participantes']);
-            }
-            //cria um apelido
-            $slug = $this->service->generateSlug($data['nomeProjeto']);
-            $data['slug'] = $slug;
-            //trata os dados
-            $project = $this->processingData($data, $slug);
-            $project['idusuario'] = $user->idusuario;
-
-            
-            if (!empty($data['desafio'])) {
-                $challenge = $this->challenge->getBySlug($data['desafio']);
-                if (!$challenge) {
-                    return response()->json(['message' => 'Desafio não encontrado'], 404);
+            if (Auth::guard('sanctum')->check()) {
+                $user = Auth::guard('sanctum')->user();
+                //valida os dados recebido
+                $data = $request->validated();
+                //clona os dados recebidos
+                $dataClone = $data;
+                //retira os dados dos participantes para fazer o insert no banco
+                if (!empty($data['participantes'])) {
+                    unset($data['participantes']);
                 }
-                $project['iddesafio'] = $challenge->iddesafio;
-            }
-            
-            $projectId = $this->repository->createProject($project);
-            if (!empty($dataClone['participantes'])) {
-                $participants = $dataClone['participantes'];
-                try {
-                    //adiciona  os participantes participantes
-                    $dataParticipants = $this->addParticipants($participants, $projectId);
-                    $this->repository->addRangeParticipants($dataParticipants);
-                } catch (\Exception $message) {
-                    return response()->json(['message' => $message->getMessage()], 404);
+                //cria um apelido
+                $slug = $this->service->generateSlug($data['nomeProjeto']);
+                $data['slug'] = $slug;
+                //trata os dados
+                $project = $this->processingData($data, $slug);
+                $project['idusuario'] = $user->idusuario;
+
+                
+                if (!empty($data['desafio'])) {
+                    $challenge = $this->challenge->getBySlug($data['desafio']);
+                    if (!$challenge) {
+                        return response()->json(['message' => 'Desafio não encontrado'], 404);
+                    }
+                    $project['iddesafio'] = $challenge->iddesafio;
                 }
+                
+                $projectId = $this->repository->createProject($project);
+                if (!empty($dataClone['participantes'])) {
+                    $participants = $dataClone['participantes'];
+                    try {
+                        //adiciona  os participantes participantes
+                        $dataParticipants = $this->addParticipants($participants, $projectId);
+                        $this->repository->addRangeParticipants($dataParticipants);
+                    } catch (HttpException $message) {
+                        return response()->json(['message' => $message->getMessage()], 404);
+                    }
+                }
+                return response()->json(['message' => 'Projeto Criado'], 200);
             }
-            return response()->json(['message' => 'Projeto Criado'], 200);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 403);
+            throw new HttpException(401, 'Autorização negada');
+        } catch (HttpException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
         }
     }
 

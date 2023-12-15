@@ -8,6 +8,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\DenounceController;
+use App\Http\Controllers\AdmController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -31,7 +32,11 @@ Route::group(['prefix' => 'v1'], function () {
     Route::post('professor', [TeacherController::class, 'store']);
     Route::put('professor/autenticar', [TeacherController::class, 'authenticate']);
     Route::get('professor', [TeacherController::class, 'index']);
+    Route::get('professor/{username}/desafios', [TeacherController::class, 'getChallenges']);
     Route::get('professores/invalidos', [TeacherController::class, 'unauthenticatedTeachers']);
+
+    Route::post('adm', [AdmController::class, 'store']);
+    Route::get('adm', [AdmController::class, 'index']);
 
     Route::apiResource('projeto', ProjectController::class);
     Route::post('projeto/{slug}/comentario', [ProjectController::class, 'comment']);
@@ -39,12 +44,11 @@ Route::group(['prefix' => 'v1'], function () {
     Route::put('projeto/{slug}/desativar', [ProjectController::class, 'disable']);
     Route::put('projeto/{slug}/reativar', [ProjectController::class, 'restore']);
     
-    Route::apiResource('convite', InvitationController::class);    
+    Route::apiResource('convite', InvitationController::class);   
 
     Route::apiResource('desafio', ChallengeController::class);
 
     Route::apiResource('denuncia', DenounceController::class);
-
     Route::apiResource('comentario', CommentController::class);
 });
 

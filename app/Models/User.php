@@ -72,9 +72,9 @@ class User extends Authenticatable
     */
     public function createUser($data) {
         $data['data_criacao'] = \Carbon\Carbon::now();
-        $id = $this->insertGetId($data);
-        $this->generateUsername($data['nome'], $id);
-        return $id;
+        $user = User::create($data);
+        $this->generateUsername($data['nome'], $user->idusuario);
+        return $user;
     }
     
     /**
@@ -129,7 +129,7 @@ class User extends Authenticatable
     }
 
     public function notifications($userId) {
-        $data = Email::with('user')->where('idusuario_convite', $userId)->get();
+        $data = Email::with('user')->where('destinatario', $userId)->get();
         return $data;
     }
     

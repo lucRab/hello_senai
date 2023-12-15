@@ -157,7 +157,7 @@ class InvitationController extends Controller
                 $data = [
                    'idusuario' => Auth::guard('sanctum')->id(),
                    'idconvite' => $inviteUser->idconvite,
-                   'idusuario_convite' => $inviteUser->idusuario,
+                   'destinatario' => $inviteUser->idusuario,
                    'texto'     => $message,
                    'status'    => 0,
                 ];

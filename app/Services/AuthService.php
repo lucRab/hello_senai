@@ -34,4 +34,9 @@ class AuthService
         if ($userRule) return $userRule;
         return false;
     }
+
+    public function abilities()
+    {
+        return ['project-store', 'project-update', 'project-destroy', 'invite-store', 'invite-update', 'invite-destroy'];
+    }
 }

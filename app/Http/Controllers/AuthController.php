@@ -17,22 +17,16 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 class AuthController extends Controller
 {
     private $service;
-    
+    private $user;
     
     public function __construct(
         protected User $repository
     )
     {      
         $this->service = new AuthService();
+        $this->user = new User();
     }
     
-    public function getAbilities()
-    {
-        return ['project-store', 'project-update', 'project-destroy', 'invite-store', 'invite-update', 'invite-destroy'];
-    }
-
-
-
     public function registerTeacher(StoreTeacherRequest $request)
     {
         Log::info(self::class. ' Requisição de registro de professor', ['dados' => $request->all()]);
@@ -49,12 +43,12 @@ class AuthController extends Controller
     {
         try {
             $request->validate([
-                'email' => 'required|email|max:255|regex:/ba.estudante.senai\.br/',
+                'email' => 'required|email|max:255',
                 'senha' => 'required|min:6|max:255'
             ]);
 
             $credentials = Auth::attempt($request->only('email', 'senha'));
-            $abilities = $this->getAbilities();
+            $abilities = $this->service->abilities();
 
             if ($credentials)
             {
@@ -94,8 +88,6 @@ class AuthController extends Controller
                 }
 
                 Log::info(self::class. ' Requisição de login', ['dados' => $request->only('email')]);
-                $credentials = Auth::attempt($request->only('email', 'senha'));
-                $abilities = $this->getAbilities();
             }
             throw new HttpException(403, 'Dados Incorretos');
         } catch (HttpException $e) {
@@ -105,7 +97,6 @@ class AuthController extends Controller
             'Server' => $_SERVER["SERVER_SOFTWARE"]]);
             return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
         }
-        
     }
 
     public function profile()

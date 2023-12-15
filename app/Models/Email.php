@@ -10,7 +10,7 @@ class Email extends Model
     use HasFactory;
     protected $fillable = [
         'idusuario',
-        'idusuario_convite',
+        'destinatario',
         'texto',
         'status'
     ];
