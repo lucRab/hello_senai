@@ -56,7 +56,7 @@ class Project extends Model
 
     public function comments()
     {
-        return $this->hasMany(Comment::class, 'idprojeto');
+        return $this->hasMany(Comment::class, 'idprojeto')->whereNull('idcomentario_pai');
     }
 
     public function challenge()

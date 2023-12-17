@@ -18,14 +18,18 @@ class CommentResource extends JsonResource
     public function toArray(Request $request): array
     {
         $user = $this->whenLoaded('user');
-        $reply = $this->whenLoaded('reply');
 
-        return [
+        $data = [
             'idcomentario' => $this->idcomentario,
-            'usuario' => ['nome' => $user->nome, 'apelido' => $user->apelido, 'avatar' => $user->avatar ? Storage::url($user->avatar) : null],
             'texto' => $this->texto,
             'criadoEm' => DateService::transformDateHumanReadable($this->criado_em),
-            'resposta' => $reply ? new CommentResource($reply) : null
+            'resposta' => CommentResource::collection($this->replies)
         ];
+
+        if ($this->relationLoaded('user')) {
+            $data['usuario'] = ['nome' => $user->nome, 'apelido' => $user->apelido, 'avatar' => $user->avatar ? Storage::url($user->avatar) : null];
+        }
+
+        return $data;
     }
 }

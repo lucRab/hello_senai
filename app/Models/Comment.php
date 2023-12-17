@@ -18,7 +18,7 @@ class Comment extends Model
     protected $fillable = [
         'idprojeto',
         'texto',
-        'idresposta',
+        'idcomentario_pai',
         'idusuario',
         'criado_em'
     ];
@@ -34,8 +34,8 @@ class Comment extends Model
         return $this->belongsTo(User::class, 'idusuario');
     }
 
-    public function reply() {
-        return $this->belongsTo(Comment::class, 'idresposta');
+    public function replies() {
+        return $this->hasMany(Comment::class, 'idcomentario_pai')->with('user');
     }
 
     /**

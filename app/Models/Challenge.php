@@ -24,11 +24,11 @@ class Challenge extends Model
         'idconvite',
         'imagem',
     ];
-    const UPDATED_AT = 'atualizado_em';
+    public const UPDATED_AT = 'atualizado_em';
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'idusuario');
+        return $this->belongsTo(User::class, 'idusuario', 'idusuario');
     }
 
     public function project()
@@ -70,24 +70,13 @@ class Challenge extends Model
      * @param [string] $idprofessor
      * @return bool
      */
-    public function deleteChallenge(string $idconvite, string $idprofessor)
+    public function deleteChallenge($idchallenge)
     {
-
-        if(!DB::table('desafio')->where('idconvite', '=', $idconvite, 'and', 'idprofessor', '=', $idprofessor)
-        ->delete()) {
+        if(!Challenge::where('iddesafio', $idchallenge)->delete()) {
             Log::error(self::class . "Error Delete", ['idConvite: ' => $idconvite,
-                                                     'idprofessor' => $idprofessor, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
-            return false;
+            'idprofessor' => $idprofessor, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
+            throw new HttpException(403, 'Não foi possível deletar o desafio, tente novamente mais tarde');
         }
-
-        $this->deleteInvitation($idconvite);
-        return true;
-    }
-
-    public function createInvitation(array $data)
-    {
-        $id = DB::table('convite')->insertGetId($data);
-        return $id;
     }
 
     public function getbySlug($slug)
@@ -95,14 +84,5 @@ class Challenge extends Model
         $get = DB::table('desafio as d')
         ->where('d.slug', '=', $slug)->first();
         return $get;
-    }
-
-    public function deleteInvitation(string $idInvitation)
-    {
-        if (DB::table('convite')->where('idconvite', '=', $idInvitation)->delete()) {
-            return true;
-        };
-        Log::error(self::class . "Error Delete", ['idComentario: ' => $idInvitation, $GLOBALS['request'], Auth::guard('sanctum')->user()]);
-        return false;
     }
 }

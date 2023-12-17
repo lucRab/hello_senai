@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\CommentRequest;
+use App\Http\Requests\StoreCommentRequest;
 use App\Http\Requests\UpdateCommentRequest;
 use App\Models\Comment;
 use App\Http\Controllers\Controller;
@@ -18,26 +18,8 @@ class CommentController extends Controller
     ) {
         $this->repository = new Comment();
     }
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(CommentRequest $request) {
+    public function store(StoreCommentRequest $request) {
         $data = $request->validated();
         try {
            CustomException::actionException($this->repository->createComment($data));
@@ -46,42 +28,16 @@ class CommentController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Comment $comment)
-    {
-        
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit( $comment)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateCommentRequest $request, string $comment) {
-        $data = $request->validated();
-        try {
-            CustomException::actionException($this->repository->updateComment($comment, $data));
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage() ], 403);
-        }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $comment) {
         try {
             CustomException::actionException($this->repository->deleteComment($comment));
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage() ], 403);
         }
+    }
+
+    public function replyStore()
+    {
+        
     }
 }

@@ -20,7 +20,7 @@ class Teacher extends User
 
     public function challenge()
     {
-        return $this->hasMany(Challenge::class, 'idusuario');
+        return $this->hasMany(Challenge::class, 'idusuario', 'idusuario');
     }
 
     public function user()

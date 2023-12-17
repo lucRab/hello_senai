@@ -105,9 +105,19 @@ class TeacherController extends Controller
         if (!$this->authService->isTeacher($userId)) {
             return response()->json(['message' => 'Usuário não é professor'], 403);
         }
-        $challenges = Challenge::with('user')->where('desafio.idusuario', '=', $userId)
+        $challenges = Challenge::where('desafio.idusuario', $userId)
         ->orderBy('desafio.data_criacao', 'DESC')
         ->paginate();
-        return ChallengeResource::collection($challenges);
+
+        return response()->json([
+            'autor' => ['nome' => $getUser->nome, 'apelido' => $getUser->apelido], 
+            'desafios' => ChallengeResource::collection($challenges->items()),
+            'links' => [
+                'first' => $challenges->url(1),
+                'last' => $challenges->url($challenges->lastPage()),
+                'prev' => $challenges->previousPageUrl(),
+                'next' => $challenges->nextPageUrl(),
+            ]
+        ], 200);
     }
 }

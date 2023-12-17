@@ -33,7 +33,7 @@ class ChallengeController extends Controller
     public function index(Request $request)
     {
         $limit = $request->query('limit') ?? 15;
-        $challenges = $this->repository->with(['user'])->paginate($limit);
+        $challenges = $this->repository->with(['user'])->orderBy('data_criacao', 'DESC')->paginate($limit);
         return ChallengeResource::collection($challenges);
     }
 
@@ -113,17 +113,19 @@ class ChallengeController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($slug)
+    public function destroy(string $slug)
     {
-        $user = Auth::guard('sanctum')->user();
-        $get = $this->repository->getbySlug($slug);
         try {
-            CustomException::authorizedActionException('challenge-delete', $user, $get);
-            CustomException::actionException($this->repository->deleteChallenge(
-                $get[0]->idconvite,
-                $get[0]->idprofessor
-            ));
-        } catch(Exception $e) {
+            if (Auth::guard('sanctum')->check()) {
+                $user = Auth::guard('sanctum')->user();
+                $challenge = $this->service->getbySlug($slug);
+                if ($user->idusuario === $challenge->idusuario && $user->tokenCan('challenge-destroy')) {
+                   $this->repository->deleteChallenge($challenge->iddesafio);
+                   return response()->json(['message' => 'Desafio excluido'], 200);
+                }
+            }
+            throw new HttpException(401, 'Autorização negada');
+        } catch(HttpException $e) {
             return response()->json(['message' => $e->getMessage()], 403);
         }
     }

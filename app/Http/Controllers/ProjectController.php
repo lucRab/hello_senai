@@ -52,11 +52,11 @@ class ProjectController extends Controller
         $limit = $request->query('limit') ?? 7;
 
         if (empty($queryItems)) {
-            $projects = $this->repository->with(['user', 'comments.user', 'comments.reply.user'])->where('status', '1')->orderBy('data_projeto', $order)->paginate($limit);
+            $projects = $this->repository->with(['user', 'comments.replies'])->where('status', '1')->orderBy('data_projeto', $order)->paginate($limit);
             return ProjectResource::collection($projects);
         }
 
-        $projects = $this->repository->with(['user', 'comments.user', 'comments.reply.user'])->where($queryItems)->where('status', '1')->orderBy('data_projeto', $order)->paginate($limit);
+        $projects = $this->repository->with(['user', 'comments.replies'])->where($queryItems)->where('status', '1')->orderBy('data_projeto', $order)->paginate($limit);
         return ProjectResource::collection($projects->appends($request->query()));
     }
 
@@ -243,23 +243,16 @@ class ProjectController extends Controller
                 'criado_em' => Carbon::now(new \DateTimeZone('America/Sao_Paulo'))
             ];
 
-            if (empty($data['comentarioPai'])) {
-                $comment = new Comment($commentData);
-                $comment->save();
-            } else {
+            if (!empty($data['comentarioPai'])) {
                 $parentComment = Comment::find($data['comentarioPai']);
                 if (!$parentComment) {
                     return response()->json(['message' => 'Comentário não encontrado'], 404);
                 }
-                $comment = new Comment($commentData);
-                $comment->save();
-                $updatedComment = $parentComment->update(['idresposta' => $comment->idcomentario]);
-                if (!$updatedComment) {
-                    return response()->json(['message' => 'Não foi possivel realizar o comentário'], 403);
-                }
-                $commentData['comentarioPai'] = $data['comentarioPai'];
-            }
-
+                $commentData['idcomentario_pai'] = $data['comentarioPai'];
+            } 
+            
+            $comment = new Comment($commentData);
+            $comment->save();
             return response()->json(['data' => $commentData], 200);
         }
         return response()->json(['message' => 'Autorização negada'], 401);
