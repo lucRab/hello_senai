@@ -34,6 +34,10 @@ class ProjectResource extends JsonResource
             'comentarios' => CommentResource::collection($comments) ?: []
         ];
 
+        if ($this->relationLoaded('challenge')) {
+            $data['desafio'] = $this->challenge ? ['titulo' => $this->challenge->titulo, 'slug' => $this->challenge->slug] : null;
+        }
+
         if ($this->relationLoaded('participants')) {
             $data['participantes'] = $this->participants ? $this->filterParticipantData($this->participants) : [];
         }

@@ -18,7 +18,7 @@ class ProjectService implements ISlugService
     
     public function getBySlug($slug)
     {
-        $data = Project::with(['user', 'participants', 'comments.user' ,'comments.replies.user'])->where('slug', '=', $slug)->first();
+        $data = Project::with(['user', 'participants', 'comments.user' ,'comments.replies.user', 'challenge'])->where('slug', '=', $slug)->first();
         if (!$data) throw new HttpException(404, 'Projeto não encontrado');
 
         return $data;

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Auth;
 use App\Models\User;
 use App\Models\Project;
+use App\Models\Invitation;
 use App\Models\Challenge;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
@@ -168,6 +169,18 @@ class UserController extends Controller
         }
         $invites = $user->invite()->with('user')->paginate();
         return InvitationResource::collection($invites);
+    }
+
+    public function getCountInvitesAndProjects(Request $request)
+    {
+        if (Auth::guard('sanctum')->check()) {
+            $user = Auth::guard('sanctum')->user();
+            return response()->json([
+                'convites' => Invitation::where('idusuario', $user->idusuario)->count(),
+                'projetos' => Project::where('idusuario', $user->idusuario)->count()
+            ], 200);
+        }
+        return response()->json(['message' => 'Autorização negada'], 401);
     }
 
     public function getChallengesPerfomed(Request $request)
