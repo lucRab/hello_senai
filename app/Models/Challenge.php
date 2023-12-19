@@ -17,11 +17,9 @@ class Challenge extends Model
     protected $fillable = [
         'titulo',
         'descricao',
-        'data_convite',
         'idusuario',
         'slug',
         'idprofessor',
-        'idconvite',
         'imagem',
     ];
     public const UPDATED_AT = 'atualizado_em';

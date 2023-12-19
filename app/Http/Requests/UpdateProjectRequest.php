@@ -25,7 +25,7 @@ class UpdateProjectRequest extends FormRequest
             'nomeProjeto' => 'required|min:3|max:80',
             'descricao' => 'required',
             'projetoStatus' => 'required',
-            'link' => 'nullable|regex:/github.com/',
+            'github' => 'required|regex:/github.com/',
             'imagem' => 'nullable',
             'participantes' => 'nullable',
             'desafio' => 'nullable'

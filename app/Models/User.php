@@ -40,6 +40,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(Project::class, 'idusuario');
     }
+
+    public function permission()
+    {
+        return $this->hasMany(Permission::class, 'idusuario');
+    }
     /**
      * Método para vincular o convite ao usuario
      *
@@ -129,7 +134,7 @@ class User extends Authenticatable
     }
 
     public function notifications($userId) {
-        $data = Email::with('user')->where('destinatario', $userId)->get();
+        $data = Email::with('user')->where('destinatario', $userId)->orderBy('data_envio', 'DESC')->get();
         return $data;
     }
     

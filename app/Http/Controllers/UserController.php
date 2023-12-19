@@ -152,13 +152,17 @@ class UserController extends Controller
         if (!$user) {
             return response()->json(['message' => 'Usuário não encontrado'], 404);
         }
+
+        
         $projects = $user->project()->with(['user'])->where('status', '1')->paginate();
+        $participatedProjects = $user->permission()->with(['project.user'])->paginate()->pluck('project');
 
         if (Auth::guard('sanctum')->check() && Auth::guard('sanctum')->user()->idusuario === $user->idusuario) {
             $projects = $user->project()->with(['user'])->paginate();
         }
-
-        return ProjectResource::collection($projects);
+        
+        $allProjects = $projects->merge($participatedProjects)->sortByDesc('data_projeto');
+        return collect(ProjectResource::collection($allProjects))->paginate();
     }
 
     public function getInvites($username)

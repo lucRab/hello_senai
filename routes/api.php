@@ -27,7 +27,6 @@ Route::group(['prefix' => 'v1'], function () {
     Route::put('usuario/conta/desativar', [UserController::class, 'disableAccount']);
     Route::get('usuario/desafios/realizados', [UserController::class, 'getChallengesPerfomed']);
     Route::get('usuario/convites/notificacoes', [UserController::class, 'getNotifications']);
-
     Route::get('usuario/convites-projetos/total', [UserController::class, 'getCountInvitesAndProjects']);
     
     Route::put('avatar', [UserController::class, 'avatar']);

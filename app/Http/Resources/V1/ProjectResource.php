@@ -23,7 +23,7 @@ class ProjectResource extends JsonResource
         $data = [
             'nomeProjeto' => $this->nome_projeto,
             'descricao' => $this->descricao,
-            'dataCriacao' => DateService::transformDateHumanReadable($this->data_projeto),
+            'dataCriacao' => $this->data_projeto ? DateService::transformDateHumanReadable($this->data_projeto) : '',
             'status' => $this->status,
             'slug' => $this->slug,
             'github' => $this->github,

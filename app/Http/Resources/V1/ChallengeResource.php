@@ -26,6 +26,7 @@ class ChallengeResource extends JsonResource
                 'descricao' => $this->descricao, 
                 'dataCriacao' => DateService::transformDateHumanReadable($this->data_criacao), 
                 'slug' => $this->slug,
+                'imagem' => $this->imagem ? Storage::url($this->imagem) : null
             ]
         ];
 

@@ -15,6 +15,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Validator;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Illuminate\Support\Facades\Storage;
 
 class ChallengeController extends Controller
 {
@@ -51,6 +52,11 @@ class ChallengeController extends Controller
                 $slug = $this->service->generateSlug($data['titulo']);
                 $data['slug'] = $slug;
                 $data['idusuario'] = $userId;
+                
+                if(!empty($data['imagem'])) {
+                    $image = Storage::disk('public')->putFile('challenges', $data['imagem']);
+                    $data['imagem'] = $image;
+                }
 
                 $this->repository->createChallenge($data);
                 return response()->json(['message' => 'Desafio criado'], 200);

@@ -148,6 +148,7 @@ class ProjectController extends Controller
             CustomException::authorizedActionException('project-update', $user, $project);
             $data = $request->validated();
             $data['idprojeto'] = $project->idprojeto;
+            $data['slug'] = $project->slug;
 
             if ($data['nomeProjeto'] !== $project->nome_projeto) {
                 $data['slug'] = $this->service->generateSlug($data['nomeProjeto']);
@@ -161,7 +162,7 @@ class ProjectController extends Controller
             }
 
             $this->repository->updateProject($dataUpdated);
-            return response()->json($data, 200);
+            return response()->json($dataUpdated, 200);
         } catch (HttpException $e) {
             return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
         }
@@ -211,12 +212,9 @@ class ProjectController extends Controller
             'nome_projeto'  => $data['nomeProjeto'],
             'descricao'     => $data['descricao'],
             'projeto_status'        => $data['projetoStatus'],
-            'github' => $data['github']
+            'github' => $data['github'],
+            'slug' => $data['slug']
         ];
-
-        if (!empty($data['slug'])) {
-            $dataProject['slug'] = $data['slug'];
-        }
 
         //verifica se a uma imagem nos dados enviado
         if(gettype($data['imagem']) !== 'string') {
