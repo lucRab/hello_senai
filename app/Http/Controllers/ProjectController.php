@@ -22,12 +22,14 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Filters\V1\ProjectsFilter;
+use App\Services\AuthService;
 
 class ProjectController extends Controller
 {
     private $service;
     private $users;
     private $challenge;
+    private $authService;
     /**
      * Método construtor
      *
@@ -39,6 +41,7 @@ class ProjectController extends Controller
         $this->service = new ProjectService();
         $this->users = new User();
         $this->challenge = new Challenge();
+        $this->authService = new AuthService();
     }
 
     /**
@@ -68,6 +71,9 @@ class ProjectController extends Controller
         try {
             if (Auth::guard('sanctum')->check()) {
                 $user = Auth::guard('sanctum')->user();
+                if ($this->authService->isTeacher($user->idusuario)) {
+                    throw new HttpException(401, 'Professores não podem postar projetos');
+                }
                 //valida os dados recebido
                 $data = $request->validated();
                 //clona os dados recebidos

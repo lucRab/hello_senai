@@ -38,7 +38,7 @@ class AdmController extends Controller
             $data['senha'] = bcrypt($request->senha);
             if (Auth::guard('sanctum')->check() && Auth::guard('sanctum')->user()->tokenCan('project-store')) {
                 $idUser = $this->user->createUser($data);
-                $this->repository->createAdm($idUser);
+                $this->repository->createAdm($idUser->idusuario);
                 return response()->json(['message' => 'Adm registrado'], 200);
             }
             throw new HttpException(401, 'Autorização negada');

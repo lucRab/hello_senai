@@ -12,6 +12,7 @@ use Exception;
 use Illuminate\Http\Request;
 use App\Models\Invitation;
 use App\Services\InvitationService;
+use App\Services\AuthService;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use App\Filters\V1\InvitesFilter;
 
@@ -19,12 +20,14 @@ use App\Filters\V1\InvitesFilter;
 class InvitationController extends Controller
 {
     private $service;
+    private $authService;
 
     public function __construct(
         protected Invitation $repository
     )
     {
         $this->service = new InvitationService();
+        $this->authService = new AuthService();
     }
 
     /**
@@ -39,12 +42,14 @@ class InvitationController extends Controller
 
         if (empty($queryItems)) {
             $invitations = $this->repository->with(['user', 'participants' => function ($query) {
-                $query->with('user')->where('status', 1);
+                $query->with('sender')->where('status', 1);
             }])->orderBy('data_convite', $order)->paginate($limit);
             return InvitationResource::collection($invitations);
         }
 
-        $invitations = $this->repository->with('user')->where($queryItems)->orderBy('data_convite', $order)->paginate($limit);
+        $invitations = $this->repository->with(['user', 'participants' => function ($query) {
+            $query->with('sender')->where('status', 1);
+        }])->where($queryItems)->orderBy('data_convite', $order)->paginate($limit);
         return InvitationResource::collection($invitations);
     }
 
@@ -56,6 +61,9 @@ class InvitationController extends Controller
         try {
             if (Auth::guard('sanctum')->check()) {
                 $user = Auth::guard('sanctum')->user();
+                if ($this->authService->isTeacher($user->idusuario)) {
+                    throw new HttpException(401, 'Professores não podem criar convites');
+                }
                 //pega os dados validados
                 $data = $request->validated();
                 $userId = $user->idusuario;

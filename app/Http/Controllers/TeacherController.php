@@ -36,7 +36,7 @@ class TeacherController extends Controller
     {
         $teachers = $this->repository->with(['challenge' => function($query) {
             $query->take(3);
-        }, 'user'])->paginate();
+        }, 'user'])->where('professor.autenticado', '1')->paginate();
         return TeacherResource::collection($teachers);
     }
 
@@ -48,10 +48,10 @@ class TeacherController extends Controller
         try {
             $data = $request->validated();
             $data['senha'] = bcrypt($request->senha);
-            $idUser = $this->user->createUser($data);
-            $this->repository->createTeacher($idUser);
+            $user = $this->user->createUser($data);
+            $this->repository->createTeacher($user->idusuario);
 
-            return response()->json(['message' => 'Registro feito com sucesso', 200]);
+            return response()->json(['message' => 'Registro feito com sucesso'], 200);
         }catch (HttpException $e) {
             return response()->json(['message' => $e->getMessage()], $e->getStatusCode()); 
         } 

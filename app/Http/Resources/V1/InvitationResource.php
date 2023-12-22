@@ -18,7 +18,6 @@ class InvitationResource extends JsonResource
     {
         $author = $this->whenLoaded('user');
 
-        
         $data =  [
             'titulo' => $this->titulo,
             'descricao' => $this->descricao,
@@ -30,9 +29,9 @@ class InvitationResource extends JsonResource
         if ($this->relationLoaded('participants')) {
             $data['participantes'] = $this->participants->map(function ($participant) {
                 return [
-                    'nome' => $participant->user->nome,
-                    'apelido' => $participant->user->apelido,
-                    'avatar' => $participant->user->avatar
+                    'nome' => $participant->sender->nome,
+                    'apelido' => $participant->sender->apelido,
+                    'avatar' => $participant->sender->avatar
                 ];
             });
         }

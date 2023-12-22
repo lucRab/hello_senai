@@ -16,14 +16,21 @@ class NotificationsResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $user = $this->whenLoaded('user');
+        $sender = $this->whenLoaded('sender');
         $carbonDate = Carbon::parse($this->data_envio);
         $formattedDate = $carbonDate->format('d/m/Y');
 
-        return [
+        $data = [
             'mensagem' => $this->texto,
             'enviadoEm' => $formattedDate,
-            'remetente' => ['nome' => $user->nome, 'apelido' => $user->apelido, $user->avatar ? Storage::url($user->avatar) : null]
+            'remetente' => ['nome' => $sender->nome, 'apelido' => $sender->apelido, 'avatar' => $sender->avatar ? Storage::url($sender->avatar) : null],
+            'mensagem' => $this->mensagem
         ];
+
+        if ($this->relationLoaded('addressee')) {
+            $data['destinatario'] = ['nome' => $this->addressee->nome, 'apelido' => $this->addressee->apelido, 'avatar' => $this->addressee->avatar ? Storage::url($this->addressee->avatar) : null];
+        }
+
+        return $data;
     }
 }

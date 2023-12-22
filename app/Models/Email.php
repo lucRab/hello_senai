@@ -20,8 +20,13 @@ class Email extends Model
     const CREATED_AT = "data_envio";
     const UPDATED_AT = null;
 
-    public function user()
+    public function sender()
     {
         return $this->belongsTo(User::class, 'idusuario', 'idusuario');
+    }
+
+    public function addressee()
+    {
+        return $this->belongsTo(User::class, 'destinatario', 'idusuario');
     }
 }

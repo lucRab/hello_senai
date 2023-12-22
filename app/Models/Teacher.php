@@ -7,6 +7,7 @@ use Auth;
 use Illuminate\Support\Facades\DB;
 use Log;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Carbon\Carbon;
 
 class Teacher extends User
 {
@@ -30,7 +31,7 @@ class Teacher extends User
 
     public function createTeacher($idUser)
     {
-        if(!DB::table('professor')->insert(['idusuario' => $idUser, 'autenticado' => 0])) {
+        if(!DB::table('professor')->insert(['idusuario' => $idUser, 'autenticado' => 0, 'atualizado_em' => Carbon::now()])) {
 
             throw new HttpException(403, 'Não foi possível registrar um novo professor, tente novamente mais tarde');
         }

@@ -86,19 +86,20 @@ class UserController extends Controller
      */
     public function update(UpdateUserRequest $request, string $username)
     {
-        $actualUser = $this->repository->getByNickname($username);
-        if (empty($actualUser)) {
-            return response()->json(['message' => 'Usuário não encontrado'], 404);
-        }
-        if (Auth::guard('sanctum')->check() && Auth::guard('sanctum')->user()->idusuario == $actualUser->idusuario) {
+       try {
+        if (Auth::guard('sanctum')->check() && Auth::guard('sanctum')->user()) {
+            $user = Auth::guard('sanctum')->user();
             $data = $request->validated();
-            if ($actualUser->status !== 'ativo') {
-                throw new NotFoundHttpException();
+            if ($user->status !== 'ativo') {
+                throw new HttpException(401, 'Conta desativada, ative-a para editar seu perfil');
             }
-            $tt = $this->repository->updateUser($data, $actualUser->idusuario);
+            $tt = $this->repository->updateUser($data, $user->idusuario);
             return response()->json(['message' => 'Dados atualizados'], 200);
         }
-        return response()->json(['message' => 'Unauthorized'], 401);
+        throw new HtppException(401, 'Autorização negada');
+        } catch (HttpException $e) {
+           return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
+       }
     }
 
     public function avatar(Request $request) {
@@ -171,7 +172,7 @@ class UserController extends Controller
         if (!$user) {
             return response()->json(['message' => 'Usuário não encontrado'], 404);
         }
-        $invites = $user->invite()->with('user')->paginate();
+        $invites = $user->invite()->with('user')->orderBy('data_convite', 'DESC')->paginate();
         return InvitationResource::collection($invites);
     }
 

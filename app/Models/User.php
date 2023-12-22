@@ -133,11 +133,35 @@ class User extends Authenticatable
         }
     }
 
-    public function notifications($userId) {
-        $data = Email::with('user')->where('destinatario', $userId)->orderBy('data_envio', 'DESC')->get();
+    // Convites que fui aceito
+    private function notifyInvitationAccepted($userId) {
+        $data = Email::with(['sender', 'addressee'])->where('idusuario', $userId)->where('status', '1')->get();
+        if (sizeof($data)) {
+            $data = $data->map(function ($item, $key) {
+                $item['mensagem'] = 'Você foi aceito(a) no convite';
+                return $item;
+            });
+        }
         return $data;
     }
-    
+
+    // Participantes que aceitaram participar do meu convite
+    private function notifyParticipantRequest($userId) {
+        $data = Email::with('sender')->where('destinatario', $userId)->get();
+        if (sizeof($data)) {
+            $data = $data->map(function ($item, $key) {
+                $item['mensagem'] = 'Aceitou participar do seu convite';
+                return $item;
+            });
+        }
+        return $data;
+    }
+
+    public function notifications($userId) {
+        $data = $this->notifyInvitationAccepted($userId)->merge($this->notifyParticipantRequest($userId))->sortByDesc('data_envio');
+        return $data;
+    }
+
     /**
      * Função para selecionar o usuario pelo apelido;
      * @param $nickname apelido do usuario
